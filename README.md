@@ -20,3 +20,15 @@ possible to query for the reports about:
 	* Domains
 	* URLs
 	* Hashes
+
+## Installation
+
+### Install with `pip`
+TBD
+
+### Testing
+To test, ensure basic dependencies are ready and then go to town with `make`
+```shell
+$ sudo pip install tox
+$ make test
+```
