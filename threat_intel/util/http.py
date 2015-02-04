@@ -9,6 +9,7 @@ import time
 from collections import namedtuple
 
 import grequests
+
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
