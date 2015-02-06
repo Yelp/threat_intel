@@ -9,6 +9,32 @@ from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
 from threat_intel.util.http import MultiRequest
 
+def _cached_by_domain(api_name):
+    """A caching wrapper for functions that take a list of domains as parameters."""
+
+    def wrapped(func):
+        def decorated(self, domains):
+            if not self._cache:
+                return func(self, domains)
+
+            all_responses = {}
+            all_responses = self._cache.bulk_lookup(api_name, domains)
+            domains = set(domains) - set(all_responses)
+
+            if domains:
+                response = func(self, domains)
+
+                # TODO better exception
+                if not response:
+                    raise Exception('dang')
+
+                for domain in response:
+                    self._cache.cache_value(api_name, domain, response[domain])
+                    all_responses[domain] = response[domain]
+
+            return all_responses
+        return decorated
+    return wrapped
 
 class InvestigateApi(object):
 
@@ -49,6 +75,7 @@ class InvestigateApi(object):
         return [cls._to_url(url_path) for url_path in url_paths]
 
     @MultiRequest.error_handling
+    @_cached_by_domain(api_name='opendns-categorization')
     def categorization(self, domains):
         """Calls categorization end point and adds an 'is_suspicious' key to each response.
 
@@ -58,27 +85,15 @@ class InvestigateApi(object):
             A dict of {domain: categorization_result}
         """
         url_path = 'domains/categorization/?showLabels'
-        all_responses = {}
+        response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
+        return response[0]
 
-        if self._cache:
-            api_name = 'opendns-categorization'
-            all_responses = self._cache.bulk_lookup(api_name, domains)
-            domains = [key for key in domains if key not in all_responses.keys()]
-
-        if len(domains):
-            response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
-            response = response[0]
-
-            # TODO: Some better more expressive exception
-            if not response:
-                raise Exception('dang')
-
-            for domain in response.keys():
-                if self._cache:
-                    self._cache.cache_value(api_name, domain, response[domain])
-                all_responses[domain] = response[domain]
-
-        return all_responses
+    @MultiRequest.error_handling
+    @_cached_by_domain(api_name='opendns-domain_score')
+    def domain_score(self, domains):
+        url_path = 'domains/score/'
+        response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
+        return response[0]
 
     @MultiRequest.error_handling
     def _multi_get(self, cache_api_name, fmt_url_path, url_params):
