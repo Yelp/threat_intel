@@ -3,21 +3,23 @@
 # VirusTotalApi makes calls to the VirusTotal API.
 #
 from threat_intel.util.api_cache import ApiCache
-from threat_intel.util.config import config_get_deep
 from threat_intel.util.http import MultiRequest
 
 
 class VirusTotalApi(object):
     BASE_DOMAIN = 'https://www.virustotal.com/vtapi/v2/'
 
-    def __init__(self, api_key, cache_file_name=None):
+    def __init__(self, api_key, resources_per_req=25, cache_file_name=None):
         """Establishes basic HTTP params and loads a cache.
 
         Args:
             api_key: VirusTotal API key
+            resources_per_req: Maximum number of resources (hashes, URLs)
+                to be send in a single request
             cache_file_name: String file name of cache.
         """
         self._api_key = api_key
+        self._resources_per_req = resources_per_req
         self._requests = MultiRequest()
 
         # Create an ApiCache if instructed to
@@ -113,8 +115,12 @@ class VirusTotalApi(object):
         Returns:
             A list of the concatenated resources.
         """
-        resources_per_req = config_get_deep('virustotal.resources_per_req', 25)
-        return [resource_delim.join(resources[pos:pos + resources_per_req]) for pos in xrange(0, len(resources), resources_per_req)]
+        return [self._prepare_resource_chunk(resources, resource_delim, pos)
+                for pos in xrange(0, len(resources), self._resources_per_req)]
+
+    def _prepare_resource_chunk(self, resources, resource_delim, pos):
+        return resource_delim.join(
+            resources[pos:pos + self._resources_per_req])
 
     def _request_reports(self, resource_param_name, resources, endpoint_name):
         """Sends multiples requests for the resources to a particular endpoint.
