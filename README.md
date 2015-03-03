@@ -1,5 +1,5 @@
 # threat_intel
-Threat Intelligence APIs
+Threat Intelligence APIs.
 
 ## Supported threat intelligence feeds
 
@@ -31,7 +31,7 @@ investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>")
 ```
 
 You can also specify a file name where the API responses will be cached in a JSON file,
-to save you the bandwitdh for the multiple calls about the same domains or IPs:
+to save you the bandwidth for the multiple calls about the same domains or IPs:
 
 ```python
 investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>", cache_file_name="/tmp/cache.opendns.json")
@@ -63,7 +63,7 @@ will result in:
 #### Security information about a domain
 
 Calls `security/name/` Investigate API endpoint.
-It takes any Python enumarable with domains, e.g. list, and returns security parameters
+It takes any Python enumerable with domains, e.g. list, and returns security parameters
 associated with each domain.
 
 ```python
@@ -97,7 +97,7 @@ will result in:
 #### Related domains (cooccurrences)
 
 Calls `recommendations/name/` Investigate API endpoint.
-Use this method to find out related domains to the one given in a list, or any other Python enumarable.
+Use this method to find out related domains to the one given in a list, or any other Python enumerable.
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -122,7 +122,7 @@ will result in:
 #### Domains related to an IP
 
 Calls `dnsdb/ip/a/` Investigate API endpoint.
-Use this method to find out related domains to the IP addresses given in a list, or any other Python enumarable.
+Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
 
 ```python
 ips = ['8.8.8.8']
@@ -236,7 +236,7 @@ will result in:
 #### Domain reports
 
 Calls `domain/report` VirusTotal API endpoint.
-Pass a list or any other Python enumarable containing the domains:
+Pass a list or any other Python enumerable containing the domains:
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -265,7 +265,7 @@ will result in:
 #### URL reports
 
 Calls `url/report` VirusTotal API endpoint.
-Pass a list or any other Python enumarable containing the URL addresses:
+Pass a list or any other Python enumerable containing the URL addresses:
 
 ```python
 urls = ["http://www.google.com", "http://www.yelp.com"]
@@ -322,7 +322,7 @@ ss = ShadowServerApi(cache_file_name="/tmp/cache.shadowserver.json")
 ```
 
 To check whether the hashes are on the ShadowServer list of known hashes,
-call `get_bin_test` method and pass enumarable with the hashes you want to test:
+call `get_bin_test` method and pass enumerable with the hashes you want to test:
 
 ```python
 file_hashes = [
@@ -341,7 +341,7 @@ ss.get_bin_test(file_hashes)
 TBD
 
 ### Testing
-To test, ensure basic dependencies are ready and then go to town with `make`
+To test, ensure that basic dependencies are ready and then go to town with `make`:
 ```shell
 $ sudo pip install tox
 $ make test
