@@ -1,6 +1,18 @@
 # threat_intel
 Threat Intelligence APIs.
 
+===============  ================
+    master           develop
+===============  ================
+|master-status|  |develop-status|
+===============  ================
+
+.. |master-status| image:: https://travis-ci.org/Yelp/threat-intel.svg?branch=master
+    : https://travis-ci.org/Yelp/threat-intel
+
+.. |develop-status| image:: https://travis-ci.org/Yelp/threat-intel.svg?branch=develop
+    :target: https://travis-ci.org/Yelp/threat-intel
+
 ## Supported threat intelligence feeds
 
 The package contains API wrappers for:
