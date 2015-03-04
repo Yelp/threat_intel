@@ -1,17 +1,6 @@
 # threat_intel
 Threat Intelligence APIs.
 
-===============  ================
-    master           develop
-===============  ================
-|master-status|  |develop-status|
-===============  ================
-
-.. |master-status| image:: https://travis-ci.org/Yelp/threat-intel.svg?branch=master
-    : https://travis-ci.org/Yelp/threat-intel
-
-.. |develop-status| image:: https://travis-ci.org/Yelp/threat-intel.svg?branch=develop
-    :target: https://travis-ci.org/Yelp/threat-intel
 
 ## Supported threat intelligence feeds
 
@@ -353,7 +342,14 @@ ss.get_bin_test(file_hashes)
 TBD
 
 ### Testing
-To test, ensure that basic dependencies are ready and then go to town with `make`:
+To test, ensure that basic dependencies by running in [virtualenv](https://virtualenv.pypa.io/en/latest/):
+
+```shell
+$ pip install requirements-dev.txt
+```
+
+Then go to town with `make`:
+
 ```shell
 $ sudo pip install tox
 $ make test
