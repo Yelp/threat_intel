@@ -12,6 +12,5 @@ env:
 
 install:
     - pip install -r requirements-dev.txt
-    - pip install tox
 
 script: make test
