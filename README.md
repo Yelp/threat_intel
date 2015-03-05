@@ -341,7 +341,11 @@ ss.get_bin_test(file_hashes)
 ## Installation
 
 ### Install with `pip`
-TBD
+
+```shell
+$ pip install threat_intel
+```
+
 
 ### Testing
 To test, ensure that basic dependencies by running in [virtualenv](https://virtualenv.pypa.io/en/latest/):
