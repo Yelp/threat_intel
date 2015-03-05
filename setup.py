@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from setuptools import find_packages
 from setuptools import setup
 
-import threat_intel
+import threat_intel.threat_intel
 
 setup(
     name="threat_intel",
