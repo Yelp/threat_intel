@@ -1,5 +1,5 @@
 # threat_intel
-Threat Intelligence APIs.
+Threat Intelligence APIs (alpha).
 
 [![Build Status](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel)
 
