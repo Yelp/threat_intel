@@ -9,6 +9,7 @@ from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
 from threat_intel.util.http import MultiRequest
 
+
 def _cached_by_domain(api_name):
     """A caching wrapper for functions that take a list of domains as parameters."""
 
@@ -35,6 +36,7 @@ def _cached_by_domain(api_name):
             return all_responses
         return decorated
     return wrapped
+
 
 class InvestigateApi(object):
 

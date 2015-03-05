@@ -1,0 +1,2 @@
+grequests==0.2.0
+simplejson==3.6.5
