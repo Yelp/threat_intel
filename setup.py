@@ -13,7 +13,7 @@ setup(
     license='Copyright 2015 Yelp',
     author_email="team-security@yelp.com",
     description="Collection of the API calls for various threat intel feeds.",
-    packages=['threat_intel', 'threat_intel.utils'],
+    packages=['threat_intel', 'threat_intel.util'],
     install_requires=[
         "grequests==0.2.0",
         "simplejson==3.6.5",
