@@ -2,6 +2,18 @@
 Threat Intelligence APIs (alpha).
 
 
+===============  ================
+    master           develop
+===============  ================
+|master-status|  |develop-status|
+===============  ================
+
+.. |master-status| image:: https://travis-ci.org/Yelp/threat_intel.svg?branch=master
+    :target: https://travis-ci.org/Yelp/pyleus
+
+.. |develop-status| image:: https://travis-ci.org/Yelp/threat_intel.svg?branch=develop
+    :target: https://travis-ci.org/Yelp/pyleus
+
 [![Build Status](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel)
 [![Build Status](https://travis-ci.org/Yelp/threat_intel.svg?branch=develop)](https://travis-ci.org/Yelp/threat_intel)
 
