@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="threat_intel",
-    version='0.0.1a6',
+    version='0.0.1a7',
     provides=['threat_intel'],
     author="Yelp Security",
     url='https://github.com/Yelp/threat_intel',
