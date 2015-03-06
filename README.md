@@ -1,12 +1,11 @@
-
-
- Master: [![Build Status: master](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel)
-
- Develop: [![Build Status: develop](https://travis-ci.org/Yelp/threat_intel.svg?branch=develop)](https://travis-ci.org/Yelp/threat_intel)
-
----
 # threat_intel
-Threat Intelligence APIs (alpha).
+Threat Intelligence APIs.
+
+
+
+  [![Build Status: master](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel)
+
+  [![Build Status: develop](https://travis-ci.org/Yelp/threat_intel.svg?branch=develop)](https://travis-ci.org/Yelp/threat_intel)
 
 
 ## Supported threat intelligence feeds
