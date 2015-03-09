@@ -7,10 +7,13 @@ Threat Intelligence APIs.
 ## Supported threat intelligence feeds
 
 The package contains API wrappers for:
+
 * OpenDNS Investigate API
 * VirusTotal API v2.0
 * ShadowServer API
 
+
+----
 
 ### OpenDNS Investigate API
 
@@ -158,6 +161,7 @@ will result in:
 }
 ```
 
+----
 
 ### VirusTotal API
 
@@ -301,6 +305,8 @@ will result in:
 }
 ```
 
+---
+
 ### ShadowServer API
 
 [ShadowServer](http://shadowserver.org/) provides and [API](http://bin-test.shadowserver.org/) that allows to test
@@ -337,6 +343,7 @@ ss.get_bin_test(file_hashes)
 
 ```
 
+---
 
 ## Installation
 
