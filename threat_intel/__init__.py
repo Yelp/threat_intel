@@ -265,4 +265,4 @@ To check whether the hashes are on the ShadowServer list of known hashes, call g
 
 
 
-__all__ = ['opendns', 'shadowserver', 'virustotal'] 
+__all__ = ['exceptions', 'opendns', 'shadowserver', 'virustotal'] 
