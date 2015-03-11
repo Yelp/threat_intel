@@ -7,7 +7,7 @@ from threat_intel.util.http import MultiRequest
 
 
 class VirusTotalApi(object):
-    BASE_DOMAIN = 'https://www.virustotal.com/vtapi/v2/'
+    BASE_DOMAIN = u'https://www.virustotal.com/vtapi/v2/'
 
     def __init__(self, api_key, resources_per_req=25, cache_file_name=None):
         """Establishes basic HTTP params and loads a cache.
