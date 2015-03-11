@@ -20,7 +20,7 @@ def _cached_by_domain(api_name):
 
             all_responses = {}
             all_responses = self._cache.bulk_lookup(api_name, domains)
-            domains = set(domains) - set(all_responses)
+            domains = list(set(domains) - set(all_responses))
 
             if domains:
                 response = func(self, domains)
