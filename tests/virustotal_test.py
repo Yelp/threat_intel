@@ -14,8 +14,7 @@ class VirusTotalApiTest(T.TestCase):
     def setup_vt(self):
         self.vt = VirusTotalApi('test_key')
 
-    def _test_api_call(self, call, endpoint, request, expected_query_params, api_response,
-                       expected_result):
+    def _test_api_call(self, call, endpoint, request, expected_query_params, api_response, expected_result):
         """
         Tests a VirusTotalApi call by mocking out the HTTP request.
 
@@ -31,8 +30,7 @@ class VirusTotalApiTest(T.TestCase):
             request_mock.multi_get.return_value = api_response
             result = call(request)
 
-            request_mock.multi_get.assert_called_with(self.vt.BASE_DOMAIN + endpoint,
-                                                      query_params=expected_query_params)
+            request_mock.multi_get.assert_called_with(self.vt.BASE_DOMAIN + endpoint, query_params=expected_query_params)
             T.assert_equal(result, expected_result)
 
     def test_get_file_reports(self):
