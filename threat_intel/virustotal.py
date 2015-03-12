@@ -84,6 +84,27 @@ class VirusTotalApi(object):
 
         return all_responses
 
+    @MultiRequest.error_handling
+    def get_ip_reports(self, ips):
+        """Retrieves the most recent VT info for a set of ips.
+
+        Args:
+            ips: list of IPs.
+        Returns:
+            A dict with the IP as key and the VT report as value.
+        """
+        api_name = 'virustotal-ip-address-reports'
+        (all_responses, ips) = self._bulk_cache_lookup(api_name, ips)
+
+        responses = self._request_reports("ip", ips, 'ip-address/report')
+
+        for ip, response in zip(ips, responses):
+            if self._cache:
+                self._cache.cache_value(api_name, ip, response)
+            all_responses[ip] = response
+
+        return all_responses
+
     def _bulk_cache_lookup(self, api_name, keys):
         """Performes a bulk cache lookup and returns a tuple with the results
         found and the keys missing in the cache. If cached is not configured

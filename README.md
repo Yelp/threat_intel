@@ -268,6 +268,62 @@ will result in:
 }
 ```
 
+#### IP reports
+
+Calls `ip-address/report` VirusTotal API endpoint.
+Pass a list or any other Python enumerable containing the IP addresses:
+
+```python
+ips = ['90.156.201.27', '198.51.132.80']
+vt.get_ip_reports(ips)
+```
+
+will result in:
+
+```json
+{
+  "90.156.201.27": {
+    "asn": "25532",
+    "country": "RU",
+    "response_code": 1,
+    "as_owner": ".masterhost autonomous system",
+    "verbose_msg": "IP address found in dataset",
+    "resolutions": [
+      {
+        "last_resolved": "2013-04-01 00:00:00",
+        "hostname": "027.ru"
+      },
+      {
+        "last_resolved": "2015-01-20 00:00:00",
+        "hostname": "600volt.ru"
+      },
+
+      ..
+
+    ],
+    "detected_urls": [
+      {
+        "url": "http://shop.albione.ru/",
+        "positives": 2,
+        "total": 52,
+        "scan_date": "2014-04-06 11:18:17"
+      },
+      {
+        "url": "http://www.orlov.ru/",
+        "positives": 3,
+        "total": 52,
+        "scan_date": "2014-03-05 09:13:31"
+      }
+    ],
+  },
+
+  "198.51.132.80": {
+
+    ..
+
+  }
+}
+```
 
 #### URL reports
 
