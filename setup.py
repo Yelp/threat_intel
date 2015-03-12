@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-
-from setuptools import setup
 from setuptools import find_packages
+from setuptools import setup
 
 
 setup(
     name="threat_intel",
-    version='0.0.7',
+    version='0.0.8',
     provides=['threat_intel'],
     author="Yelp Security",
     url='https://github.com/Yelp/threat_intel',
