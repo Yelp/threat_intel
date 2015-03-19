@@ -145,7 +145,7 @@ will result in:
 ```
 
 
-#### Domain Tagging Dates for a domain
+#### Domain tagging dates for a domain
 
 Calls `domains/name/` Investigate API endpoint.
 
@@ -172,7 +172,7 @@ will result in:
 
 
 
-#### DNS RR History for a Domain
+#### DNS RR history for a Domain
 
 Calls `dnsdb/name/a/` Investigate API endpoint.
 Use this method to find out related domains to domains given in a list, or any other Python enumerable.
@@ -204,7 +204,7 @@ will result in:
 ```
 
 
-#### DNS RR History for an IP
+#### DNS RR history for an IP
 
 Calls `dnsdb/ip/a/` Investigate API endpoint.
 Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
@@ -239,7 +239,7 @@ will result in:
 }
 ```
 
-#### Latest Malicious Domains for an IP
+#### Latest malicious domains for an IP
 
 Calls `ips/{ip}/latest_domains` Investigate API endpoint.
 
