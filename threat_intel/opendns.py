@@ -149,14 +149,63 @@ class InvestigateApi(object):
         fmt_url_path = u'recommendations/name/{0}.json'
         return self._multi_get(api_name, fmt_url_path, domains)
 
+    def domain_tag(self, domains):
+        """Get the data range when a domain is part of OpenDNS block list.
+
+        Args:
+            domains: an enumerable of strings domain names
+        Returns:
+            An enumerable of string with period, category, and url
+        """
+        api_name = 'opendns-domain_tag'
+        fmt_url_path = u'domains/name/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def related_domains(self, domains):
+        """Get list of domain names that have been seen requested around the
+        same time (up to 60 seconds before or after) to the given domain name.
+
+        Args:
+            domains: an enumerable of strings domain names
+        Returns:
+            An enumerable of [domain name, scores]
+        """
+        api_name = 'opendns-related_domains'
+        fmt_url_path = u'links/name/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
     def rr_history(self, ips):
         """Get the domains related to input ips.
 
         Args:
             ips: an enumerable of strings as ips
         Returns:
-            An enumerable of string domain names
+            An enumerable of resource records and features
         """
         api_name = 'opendns-rr_history'
         fmt_url_path = u'dnsdb/ip/a/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, ips)
+
+    def dns_rr(self, ips):
+        """Get the domains related to input domains.
+
+        Args:
+            domains: an enumerable of strings as domains
+        Returns:
+            An enumerable of resource records and features
+        """
+        api_name = 'opendns-dns_rr'
+        fmt_url_path = u'dnsdb/name/a/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, ips)
+
+    def latest_malicious(self, ips):
+        """Get the a list of malicious domains related to input ips.
+
+        Args:
+            ips: an enumerable of strings as ips
+        Returns:
+            An enumerable of strings for the malicious domains
+        """
+        api_name = 'opendns-latest_malicious'
+        fmt_url_path = u'ips/{0}/latest_domains'
         return self._multi_get(api_name, fmt_url_path, ips)

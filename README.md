@@ -48,7 +48,7 @@ investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>", cache_file_name="/tmp
 
 Calls `domains/categorization/?showLabels` Investigate API endpoint.
 It takes a list (or any other Python enumerable) of domains and returns
-the categories associated with this domains by OpenDNS.
+the categories associated with this domains by OpenDNS along with a [-1, 0, 1] score, where -1 is a malicious status.
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -69,7 +69,7 @@ will result in:
 #### Security information about a domain
 
 Calls `security/name/` Investigate API endpoint.
-It takes any Python enumerable with domains, e.g. list, and returns security parameters
+It takes any Python enumerable with domains, e.g. list, and returns several security parameters
 associated with each domain.
 
 ```python
@@ -94,16 +94,15 @@ will result in:
     "rip_score": 0,
 
     ..
-
   }
 }
 ```
 
 
-#### Related domains (cooccurrences)
+#### Co-occurrences for a domain
 
 Calls `recommendations/name/` Investigate API endpoint.
-Use this method to find out related domains to the one given in a list, or any other Python enumerable.
+Use this method to find out a list of co-occurence domains (domains that are being accessed by the same users within a small window of time) to the one given in a list, or any other Python enumerable.
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -120,12 +119,92 @@ will result in:
       ["www.howtoforge.de", 0.14108563836506008],
 
       ..
-
 }
 ```
 
 
-#### Domains related to an IP
+#### Related domains for a domain
+
+Calls `links/name/` Investigate API endpoint.
+Use this method to find out a list of related domains (domains that have been frequently seen requested around a time window of 60 seconds, but that are not associated with the given domain) to the one given in a list, or any other Python enumerable.
+
+```python
+domains = ["google.com", "baidu.com", "bibikun.ru"]
+investigate.related_domains(domains)
+```
+
+will result in:
+
+```json
+{
+    u'tb1': [
+        [u't.co', 11.0], 
+
+    ..
+}
+```
+
+
+#### Domain Tagging Dates for a domain
+
+Calls `domains/name/` Investigate API endpoint.
+
+Use this method to get the date range when the domain being queried was a part of the OpenDNS block list and how long a domain has been in this list
+
+```python
+domains = ["google.com", "baidu.com", "bibikun.ru"]
+investigate.domain_tag(domains)
+```
+
+will result in:
+
+```json
+}
+    u'category': u'Malware', 
+    u'url': None, 
+    u'period': {
+        u'begin': u'2013-09-16', 
+        u'end': u'Current'
+
+    ..
+}
+```
+
+
+
+#### DNS RR History for a Domain
+
+Calls `dnsdb/name/a/` Investigate API endpoint.
+Use this method to find out related domains to domains given in a list, or any other Python enumerable.
+
+```python
+domains = ["google.com", "baidu.com", "bibikun.ru"]
+investigate.dns_rr(domains)
+```
+
+will result in:
+
+```json
+{
+    u'features': {
+        u'geo_distance_mean': 0.0, 
+        u'locations': [
+            {
+                u'lat': 59.89440155029297, 
+                u'lon': 30.26420021057129
+            }
+                    ], 
+        u'rips': 1, 
+        u'is_subdomain': False, 
+        u'ttls_mean': 86400.0, 
+        u'non_routable': False,
+
+    ..
+}
+```
+
+
+#### DNS RR History for an IP
 
 Calls `dnsdb/ip/a/` Investigate API endpoint.
 Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
@@ -157,9 +236,33 @@ will result in:
       },
 
       ..
-
 }
 ```
+
+#### Latest Malicious Domains for an IP
+
+Calls `ips/{ip}/latest_domains` Investigate API endpoint.
+
+Use this methods to see whether the IP address has any malicious domains associated with it.
+
+```python
+ips = ["8.8.8.8"]
+investigate.latest_malicious(ips)
+```
+
+will result in:
+
+```json
+}
+    [
+        u'7ltd.biz', 
+        u'co0s.ru', 
+        u't0link.in', 
+
+    ..
+}
+```
+
 
 ----
 
