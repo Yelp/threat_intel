@@ -68,7 +68,7 @@ class InvestigateApiTest(T.TestCase):
 
     def test_domain_tag(self):
         self._test_api_call_get(call=self.opendns.domain_tag,
-                            endpoint=u'domains/name/{0}.json',
+                            endpoint=u'domains/name/{0}/latest_tags',
                             request=['domain'],
                             expected_query_params='domain',
                             api_response={},

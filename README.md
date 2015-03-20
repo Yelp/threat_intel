@@ -117,7 +117,7 @@ will result in:
     "found": true,
     "pfs2": [
       ["www.howtoforge.de", 0.14108563836506008],
-
+    }
       ..
 }
 ```
@@ -137,9 +137,9 @@ will result in:
 
 ```json
 {
-    u'tb1': [
-        [u't.co', 11.0], 
-
+    "tb1": [
+        ["t.co", 11.0], 
+        ]
     ..
 }
 ```
@@ -165,7 +165,7 @@ will result in:
     u'period': {
         u'begin': u'2013-09-16', 
         u'end': u'Current'
-
+    }
     ..
 }
 ```
@@ -198,7 +198,7 @@ will result in:
         u'is_subdomain': False, 
         u'ttls_mean': 86400.0, 
         u'non_routable': False,
-
+        }
     ..
 }
 ```
@@ -234,7 +234,7 @@ will result in:
         "rr": "008.no-ip.net.",
         "ttl": 60
       },
-
+    }
       ..
 }
 ```
@@ -258,7 +258,7 @@ will result in:
         u'7ltd.biz', 
         u'co0s.ru', 
         u't0link.in', 
-
+    ]
     ..
 }
 ```
