@@ -92,8 +92,6 @@ will result in:
     },
     "dga_score": 0,
     "rip_score": 0,
-
-    ..
   }
 }
 ```
@@ -118,7 +116,6 @@ will result in:
     "pfs2": [
       ["www.howtoforge.de", 0.14108563836506008],
     }
-      ..
 }
 ```
 
@@ -140,7 +137,6 @@ will result in:
     "tb1": [
         ["t.co", 11.0], 
         ]
-    ..
 }
 ```
 
@@ -160,13 +156,12 @@ will result in:
 
 ```json
 }
-    u'category': u'Malware', 
-    u'url': None, 
-    u'period': {
-        u'begin': u'2013-09-16', 
-        u'end': u'Current'
+    'category': u'Malware', 
+    'url': None, 
+    'period': {
+        'begin': u'2013-09-16', 
+        'end': u'Current'
     }
-    ..
 }
 ```
 
@@ -186,20 +181,19 @@ will result in:
 
 ```json
 {
-    u'features': {
-        u'geo_distance_mean': 0.0, 
-        u'locations': [
+    'features': {
+        'geo_distance_mean': 0.0, 
+        'locations': [
             {
-                u'lat': 59.89440155029297, 
-                u'lon': 30.26420021057129
+                'lat': 59.89440155029297, 
+                'lon': 30.26420021057129
             }
                     ], 
-        u'rips': 1, 
-        u'is_subdomain': False, 
-        u'ttls_mean': 86400.0, 
-        u'non_routable': False,
+        'rips': 1, 
+        'is_subdomain': False, 
+        'ttls_mean': 86400.0, 
+        'non_routable': False,
         }
-    ..
 }
 ```
 
@@ -235,7 +229,6 @@ will result in:
         "ttl": 60
       },
     }
-      ..
 }
 ```
 
@@ -255,11 +248,10 @@ will result in:
 ```json
 }
     [
-        u'7ltd.biz', 
-        u'co0s.ru', 
-        u't0link.in', 
+        '7ltd.biz', 
+        'co0s.ru', 
+        't0link.in', 
     ]
-    ..
 }
 ```
 
@@ -336,9 +328,7 @@ will result in:
   "99017f6eebbac24f351415dd410d522d": {
     "scan_id": "52d3df0ed60c46f336c131bf2ca454f73bafdc4b04dfa2aea80746f5ba9e6d1c-1423261860",
     "sha1": "4d1740485713a2ab3a4f5822a01f645fe8387f92",
-
-  ..
-
+  }
 }
 ```
 
@@ -365,9 +355,7 @@ will result in:
         "sha256": "e3c1aea1352362e4b5c008e16b03810192d12a4f1cc71245f5a75e796c719c69"
       }
     ],
-
-    ..
-
+    }
 }
 ```
 
@@ -383,7 +371,7 @@ vt.get_ip_reports(ips)
 
 will result in:
 
-```json
+```
 {
   "90.156.201.27": {
     "asn": "25532",
