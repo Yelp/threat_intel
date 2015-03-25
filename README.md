@@ -57,7 +57,7 @@ investigate.categorization(domains)
 
 will result in:
 
-```json
+```
 {
     "baidu.com": {"status": 1, "content_categories": ["Search Engines"], "security_categories": []},
     "google.com": {"status": 1, "content_categories": ["Search Engines"], "security_categories": []},
@@ -79,7 +79,7 @@ investigate.security(domains)
 
 will result in:
 
-```json
+```
 {
   "baidu.com": {
     "found": true,
@@ -92,8 +92,9 @@ will result in:
     },
     "dga_score": 0,
     "rip_score": 0,
-
+  
     ..
+
   }
 }
 ```
@@ -111,14 +112,16 @@ investigate.cooccurrences(domains)
 
 will result in:
 
-```json
+```
 {
   "baidu.com": {
     "found": true,
     "pfs2": [
       ["www.howtoforge.de", 0.14108563836506008],
     }
-      ..
+
+    ..
+
 }
 ```
 
@@ -135,12 +138,14 @@ investigate.related_domains(domains)
 
 will result in:
 
-```json
+```
 {
     "tb1": [
         ["t.co", 11.0], 
         ]
+
     ..
+
 }
 ```
 
@@ -158,15 +163,17 @@ investigate.domain_tag(domains)
 
 will result in:
 
-```json
+```
 }
-    u'category': u'Malware', 
-    u'url': None, 
-    u'period': {
-        u'begin': u'2013-09-16', 
-        u'end': u'Current'
-    }
+    'category': u'Malware', 
+    'url': None, 
+    'period': {
+        'begin': u'2013-09-16', 
+        'end': u'Current'
+        }
+
     ..
+
 }
 ```
 
@@ -184,22 +191,24 @@ investigate.dns_rr(domains)
 
 will result in:
 
-```json
+```
 {
-    u'features': {
-        u'geo_distance_mean': 0.0, 
-        u'locations': [
+    'features': {
+        'geo_distance_mean': 0.0, 
+        'locations': [
             {
-                u'lat': 59.89440155029297, 
-                u'lon': 30.26420021057129
+                'lat': 59.89440155029297, 
+                'lon': 30.26420021057129
             }
                     ], 
-        u'rips': 1, 
-        u'is_subdomain': False, 
-        u'ttls_mean': 86400.0, 
-        u'non_routable': False,
+        'rips': 1, 
+        'is_subdomain': False, 
+        'ttls_mean': 86400.0, 
+        'non_routable': False,
         }
+
     ..
+
 }
 ```
 
@@ -216,7 +225,7 @@ investigate.rr_history(ips)
 
 will result in:
 
-```json
+```
 {
   "8.8.8.8": {
     "rrs": [
@@ -235,7 +244,9 @@ will result in:
         "ttl": 60
       },
     }
-      ..
+
+    ..
+
 }
 ```
 
@@ -252,13 +263,14 @@ investigate.latest_malicious(ips)
 
 will result in:
 
-```json
+```
 }
     [
-        u'7ltd.biz', 
-        u'co0s.ru', 
-        u't0link.in', 
+        '7ltd.biz', 
+        'co0s.ru', 
+        't0link.in', 
     ]
+
     ..
 }
 ```
@@ -326,7 +338,7 @@ vt.get_file_reports(file_hashes)
 
 will result in:
 
-```json
+```
 {
   "88817f6eebbac24f351415dd410d522d": {
     "response_code": 0,
@@ -336,8 +348,9 @@ will result in:
   "99017f6eebbac24f351415dd410d522d": {
     "scan_id": "52d3df0ed60c46f336c131bf2ca454f73bafdc4b04dfa2aea80746f5ba9e6d1c-1423261860",
     "sha1": "4d1740485713a2ab3a4f5822a01f645fe8387f92",
+  }
 
-  ..
+ ..
 
 }
 ```
@@ -355,7 +368,7 @@ vt.get_domain_reports(domains)
 
 will result in:
 
-```json
+```
 {
   "baidu.com": {
     "undetected_referrer_samples": [
@@ -365,9 +378,10 @@ will result in:
         "sha256": "e3c1aea1352362e4b5c008e16b03810192d12a4f1cc71245f5a75e796c719c69"
       }
     ],
-
+    
     ..
 
+    }
 }
 ```
 
@@ -383,7 +397,7 @@ vt.get_ip_reports(ips)
 
 will result in:
 
-```json
+```
 {
   "90.156.201.27": {
     "asn": "25532",
@@ -440,7 +454,7 @@ vt.get_url_reports(urls)
 
 will result in:
 
-```json
+```
 {
   "http://www.google.com": {
     "permalink": "https://www.virustotal.com/url/dd014af5ed6b38d9130e3f466f850e46d21b951199d53a18ef29ee9341614eaf/analysis/1423344006/",
@@ -458,7 +472,7 @@ will result in:
         "detected": false,
         "result": "clean site"
       },
-
+    }
   ..
 
 }
