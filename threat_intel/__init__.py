@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 """
 
 Supported threat intelligence feeds.
@@ -19,8 +17,11 @@ OpenDNS Investigate  provides an API that allows querying for:
 
     * Domain categorization
     * Security information about a domain
-    * Related domains (cooccurrences)
+    * Co-occurrences for a domain
+    * Related domains for a domain
     * Domains related to an IP
+    * Domain tagging dates for a domain
+    * DNS RR history for a domain
 
 To use the Investigate API wrapper import InvestigateApi class from threat_intel.opendns module:
 
@@ -76,8 +77,8 @@ will result in:
 }
 
 
-Related domains (cooccurrences)
--------------------------------
+Co-ooccurrences of domain
+--------------------------
 Calls recommendations/name/ Investigate API endpoint. Use this method to find out related domains to the one given in a list, or any other Python enumerable.
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -94,7 +95,54 @@ will result in:
 }
 
 
-Domains related to an IP
+Related domains for a domain
+----------------------------
+
+Calls links/name/ Investigate API endpoint. Use this method to find out a list of related domains (domains that have been frequently seen requested around a time window of 60 seconds, but that are not associated with the given domain) to the one given in a list, or any other Python enumerable.
+
+    >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
+    >>> investigate.related_domains(domains)
+
+will result in:
+
+    {
+        "tb1": [
+                ["t.co", 11.0],
+                        ]
+
+                            ..
+
+    }
+
+
+Domain tagging dates for a domain
+---------------------------------
+
+Calls domains/name/ Investigate API endpoint.
+
+Use this method to get the date range when the domain being queried was a part of the OpenDNS block list and how long a domain has been in this list
+
+    >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
+    >>> investigate.domain_tag(domains)
+
+will result in:
+
+    {
+        'category': u'Malware',
+            'url': None,
+                'period': {
+                        'begin': u'2013-09-16',
+                                'end': u'Current'
+                        }
+
+        ..
+
+    }
+
+
+
+
+DNS RR history for an IP
 ------------------------
 Calls dnsdb/ip/a/ Investigate API endpoint. Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
 
@@ -263,6 +311,4 @@ To check whether the hashes are on the ShadowServer list of known hashes, call g
 
 """
 
-
-
-__all__ = ['exceptions', 'opendns', 'shadowserver', 'virustotal'] 
+__all__ = ['exceptions', 'opendns', 'shadowserver', 'virustotal']

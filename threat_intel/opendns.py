@@ -158,7 +158,7 @@ class InvestigateApi(object):
             An enumerable of string with period, category, and url
         """
         api_name = 'opendns-domain_tag'
-        fmt_url_path = u'domains/name/{0}/latest_tags'
+        fmt_url_path = u'domains/{0}/latest_tags'
         return self._multi_get(api_name, fmt_url_path, domains)
 
     def related_domains(self, domains):
