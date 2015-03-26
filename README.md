@@ -19,10 +19,14 @@ The package contains API wrappers for:
 
 [OpenDNS Investigate](https://investigate.opendns.com/) provides an API that
 allows querying for:
-* Domain categorization
-* Security information about a domain
-* Related domains (cooccurrences)
-* Domains related to an IP
+
+    * Domain categorization
+    * Security information about a domain
+    * Co-occurrences for a domain
+    * Related domains for a domain
+    * Domains related to an IP
+    * Domain tagging dates for a domain
+    * DNS RR history for a domain
 
 To use the Investigate API wrapper import `InvestigateApi` class from `threat_intel.opendns` module:
 
@@ -164,7 +168,7 @@ investigate.domain_tag(domains)
 will result in:
 
 ```
-}
+{
     'category': u'Malware', 
     'url': None, 
     'period': {
