@@ -45,6 +45,63 @@ class VirusTotalApi(object):
         return all_responses
 
     @MultiRequest.error_handling
+    def get_file_behaviour(self, resources):
+        """Retrieves a report about the behaviour of a  md5, sha1, and/or sha2 hash of
+            a file when executed in a sandboxed environment (Cuckoo sandbox).
+
+        Args:
+            resources: list of string hashes.
+        Returns:
+            A dict with the hash as key and the VT report as value.
+        """
+        api_name = 'virustotal-file-behaviour'
+        all_responses, resources = self._bulk_cache_lookup(api_name, resources)
+
+        resource_chunks = self._prepare_resource_chunks(resources)
+        response_chunks = self._request_reports("resource", resource_chunks, 'file/behaviour')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_file_download(self, resources):
+        """Retrieves a file from its a md5, sha1, and/or sha2 hash.
+        Args:
+            resources: list of string hashes.
+        Returns:
+            a file download
+        """
+        api_name = 'virustotal-file-download'
+        all_responses, resources = self._bulk_cache_lookup(api_name, resources)
+
+        resource_chunks = self._prepare_resource_chunks(resources)
+        response_chunks = self._request_reports("resource", resource_chunks, 'file/download')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_file_network_traffic(self, resources):
+        """Retrieves a report about the network traffic of a md5, sha1, and/or sha2 hash of
+           file, when it is executed.
+        Args:
+            resources: list of string hashes.
+        Returns:
+            A dict with the hash as key and the VT report as value.
+        """
+        api_name = 'virustotal-file-network-traffic'
+        all_responses, resources = self._bulk_cache_lookup(api_name, resources)
+
+        resource_chunks = self._prepare_resource_chunks(resources)
+        response_chunks = self._request_reports("resource", resource_chunks, 'file/network-traffic')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
+
+        return all_responses
+
+    @MultiRequest.error_handling
     def get_domain_reports(self, domains):
         """Retrieves the most recent VT info for a set of domains.
 
@@ -62,6 +119,47 @@ class VirusTotalApi(object):
             if self._cache:
                 self._cache.cache_value(api_name, domain, response)
             all_responses[domain] = response
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_url_distribution(self, params=None):
+        """Retrieves a live feed with the latest URLs submitted to VT.
+
+        Args:
+            resources: a dictionary with name and value for optional arguments
+        Returns:
+            A dict with the VT report.
+        """
+        params = params  or {}
+        all_responses = {}
+        api_name = 'virustotal-url-distribution'
+
+        response_chunks = self._request_reports(params.keys(), params.values(), 'url/distribution')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_file_distribution(self, params=None):
+        """Retrieves a live feed with the latest hashes submitted to VT.
+
+        Args:
+            params: a dictionary with name and values for optional arguments,
+            such as: before (timestampe), after (timestamp), reports (boolean),
+            limit (retrieve limit file items).
+            Example: 'reports': 'true'
+        Returns:
+            A dict with the VT report.
+        """
+        params = params or []
+        all_responses = {}
+        api_name = 'virustotal-file-distribution'
+
+        response_chunks = self._request_reports(params.keys(), params.value(), 'file/distribution')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
 
         return all_responses
 
@@ -102,6 +200,48 @@ class VirusTotalApi(object):
             if self._cache:
                 self._cache.cache_value(api_name, ip, response)
             all_responses[ip] = response
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_file_search(self, query):
+        """Performs advanced search on samples, matching certain binary/
+           metadata/detection criteria.
+           Possible queries: file size, file type, first or last submission to
+            VT, number of positives, bynary content, etc.
+
+        Args:
+            query: dictionary with search arguments
+            Example: 'query': 'type:peexe size:90kb+ positives:5+ behaviour:"taskkill"'
+        Returns:
+            A dict with the VT report.
+        """
+        api_name = 'virustotal-file-search'
+        (all_responses, query) = self._bulk_cache_lookup(api_name, query)
+
+        response_chunks = self._request_reports("query", query, 'file/search')
+
+        self._extract_response_chunks(all_responses, response_chunks, api_name)
+
+        return all_responses
+
+    @MultiRequest.error_handling
+    def get_file_clusters(self, date):
+        """Retrieves file similarity clusters for a given time frame.
+
+        Args:
+            date: the specific date for which we want the clustering details.
+            Example: 'date': '2013-09-10'
+        Returns:
+            A dict with the VT report.
+        """
+        api_name = 'virustotal-file-clusters'
+
+        (all_responses, resources) = self._bulk_cache_lookup(api_name, date)
+
+        response = self._request_reports("date", date, 'file/clusters')
+
+        self._extract_response_chunks(all_responses, response, api_name)
 
         return all_responses
 
