@@ -141,7 +141,6 @@ will result in:
 
 
 
-
 DNS RR history for an IP
 ------------------------
 Calls dnsdb/ip/a/ Investigate API endpoint. Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
@@ -231,10 +230,9 @@ will result in:
 }
 
 
-
 #### URL report Endpoint
 
-Calls url/report VirusTotal API endpoint.
+Calls 'url/report' VirusTotal API endpoint.
 Pass a list or any other Python enumerable containing the URL addresses:
 
     >>> urls = ["http://www.google.com", "http://www.yelp.com"]
@@ -272,11 +270,7 @@ Submit a url or any other Python enumerable containing the URL addresses:
     >>> vt.post_url_report(urls)
 
 
-
-
-
 #### Hash report endpoint
-
 
 Calls file/report VirusTotal API endpoint.
 You can request the file reports passing a list of hashes (md5, sha1 or sha2):
@@ -302,12 +296,10 @@ will result in:
 }
 
 
-
 #### Hash rescan endpoint
 
 Calls `file/rescan` VirusTotal API endpoint. Use to rescan a previously submitted file.
 You can request the file reports passing a list of hashes (md5, sha1 or sha2):
-
 
 
 #### Hash behaviour endpoint
@@ -361,8 +353,6 @@ Calls `file/search` VirusTotal API endpoint. Use to search for samples that matc
 Calls `file/clusters` VirusTotal API endpoint. Use to list simililarity clusters for a given time frame.
 
     >>> vt.get_file_clusters()
-
-
 
 
 ShadowServer API
