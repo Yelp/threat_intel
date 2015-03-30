@@ -63,7 +63,7 @@ class VirusTotalApi(object):
     @MultiRequest.error_handling
     def get_file_behaviour(self, resources):
         """Retrieves a report about the behaviour of a md5, sha1, and/or sha2 hash of
-            a file when executed in a sandboxed environment (Cuckoo sandbox).
+        a file when executed in a sandboxed environment (Cuckoo sandbox).
 
         Args:
             resources: list of string hashes.
@@ -75,6 +75,7 @@ class VirusTotalApi(object):
     @MultiRequest.error_handling
     def get_file_download(self, resources):
         """Retrieves a file from its a md5, sha1, and/or sha2 hash.
+
         Args:
             resources: list of string hashes.
         Returns:
@@ -88,6 +89,7 @@ class VirusTotalApi(object):
     def get_file_network_traffic(self, resources):
         """Retrieves a report about the network traffic of a md5, sha1, and/or sha2 hash of
            file, when it is executed.
+
         Args:
             resources: list of string hashes.
         """

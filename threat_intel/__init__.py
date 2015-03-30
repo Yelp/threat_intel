@@ -230,7 +230,7 @@ will result in:
 }
 
 
-#### URL report Endpoint
+#### URL report endpoint
 
 Calls 'url/report' VirusTotal API endpoint.
 Pass a list or any other Python enumerable containing the URL addresses:
@@ -261,7 +261,7 @@ will result in:
 }
 
 
-#### URL scan Endpoint
+#### URL scan endpoint
 
 Calls url/scan VirusTotal API endpoint.
 Submit a url or any other Python enumerable containing the URL addresses:
@@ -341,7 +341,7 @@ Calls `file/distribution` VirusTotal API endpoint. Use to get a live a feed with
     >>> vt.get_file_distribution()
 
 
-#### Hash Search endpoint
+#### Hash search endpoint
 
 Calls `file/search` VirusTotal API endpoint. Use to search for samples that match some binary/metadata/detection criteria.
 

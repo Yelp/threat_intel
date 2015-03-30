@@ -547,7 +547,7 @@ Calls `file/distribution` VirusTotal API endpoint. Use to get a live a feed with
 vt.get_file_distribution()
 ```
 
-#### Hash Search endpoint
+#### Hash search endpoint
 
 Calls `file/search` VirusTotal API endpoint. Use to search for samples that match some binary/metadata/detection criteria.
 
