@@ -2,8 +2,6 @@
 Threat Intelligence APIs.
 
 
-
-
 ## Supported threat intelligence feeds
 
 The package contains API wrappers for:
@@ -11,7 +9,6 @@ The package contains API wrappers for:
 * OpenDNS Investigate API
 * VirusTotal API v2.0
 * ShadowServer API
-
 
 ----
 
@@ -47,7 +44,6 @@ to save you the bandwidth for the multiple calls about the same domains or IPs:
 investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>", cache_file_name="/tmp/cache.opendns.json")
 ```
 
-
 #### Domain categorization
 
 Calls `domains/categorization/?showLabels` Investigate API endpoint.
@@ -68,7 +64,6 @@ will result in:
     "bibikun.ru": {"status": -1, "content_categories": [], "security_categories": ["Malware"]}
 }
 ```
-
 
 #### Security information about a domain
 
@@ -96,13 +91,12 @@ will result in:
     },
     "dga_score": 0,
     "rip_score": 0,
-  
+
     ..
 
   }
 }
 ```
-
 
 #### Co-occurrences for a domain
 
@@ -129,7 +123,6 @@ will result in:
 }
 ```
 
-
 #### Related domains for a domain
 
 Calls `links/name/` Investigate API endpoint.
@@ -145,14 +138,13 @@ will result in:
 ```
 {
     "tb1": [
-        ["t.co", 11.0], 
+        ["t.co", 11.0],
         ]
 
     ..
 
 }
 ```
-
 
 #### Domain tagging dates for a domain
 
@@ -169,10 +161,10 @@ will result in:
 
 ```
 {
-    'category': u'Malware', 
-    'url': None, 
+    'category': u'Malware',
+    'url': None,
     'period': {
-        'begin': u'2013-09-16', 
+        'begin': u'2013-09-16',
         'end': u'Current'
         }
 
@@ -180,8 +172,6 @@ will result in:
 
 }
 ```
-
-
 
 #### DNS RR history for a Domain
 
@@ -198,16 +188,16 @@ will result in:
 ```
 {
     'features': {
-        'geo_distance_mean': 0.0, 
+        'geo_distance_mean': 0.0,
         'locations': [
             {
-                'lat': 59.89440155029297, 
+                'lat': 59.89440155029297,
                 'lon': 30.26420021057129
             }
-                    ], 
-        'rips': 1, 
-        'is_subdomain': False, 
-        'ttls_mean': 86400.0, 
+                    ],
+        'rips': 1,
+        'is_subdomain': False,
+        'ttls_mean': 86400.0,
         'non_routable': False,
         }
 
@@ -215,7 +205,6 @@ will result in:
 
 }
 ```
-
 
 #### DNS RR history for an IP
 
@@ -270,15 +259,14 @@ will result in:
 ```
 }
     [
-        '7ltd.biz', 
-        'co0s.ru', 
-        't0link.in', 
+        '7ltd.biz',
+        'co0s.ru',
+        't0link.in',
     ]
 
     ..
 }
 ```
-
 
 ----
 
@@ -287,9 +275,14 @@ will result in:
 [VirusTotal](https://www.virustotal.com/) provides an
 [API](https://www.virustotal.com/en/documentation/public-api/) that makes it
 possible to query for the reports about:
-* File hashes
-* Domains
-* URLs
+
+    * Domains
+    * URLs
+    * IPs
+    * File hashes
+    * File Upload
+    * Live Feed
+    * Advanced search
 
 To use the VirusTotal API wrapper import `VirusTotalApi` class from `threat_intel.virustotal` module:
 
@@ -325,8 +318,83 @@ Similarly to OpenDNS API wrapper, you can also specify the file name where the r
 vt = VirusTotalApi("<VIRUSTOTAL-API-KEY-HERE>", cache_file_name="/tmp/cache.virustotal.json")
 ```
 
+#### Domain report endpoint
 
-#### File hash reports
+Calls `domain/report` VirusTotal API endpoint.
+Pass a list or any other Python enumerable containing the domains:
+
+```python
+domains = ["google.com", "baidu.com", "bibikun.ru"]
+vt.get_domain_reports(domains)
+```
+
+will result in:
+
+```
+{
+  "baidu.com": {
+    "undetected_referrer_samples": [
+      {
+        "positives": 0,
+        "total": 56,
+        "sha256": "e3c1aea1352362e4b5c008e16b03810192d12a4f1cc71245f5a75e796c719c69"
+      }
+    ],
+
+    ..
+
+    }
+}
+```
+
+
+#### URL report endpoint
+
+Calls `url/report` VirusTotal API endpoint.
+Pass a list or any other Python enumerable containing the URL addresses:
+
+```python
+urls = ["http://www.google.com", "http://www.yelp.com"]
+vt.get_url_reports(urls)
+```
+
+will result in:
+
+```
+{
+  "http://www.google.com": {
+    "permalink": "https://www.virustotal.com/url/dd014af5ed6b38d9130e3f466f850e46d21b951199d53a18ef29ee9341614eaf/analysis/1423344006/",
+    "resource": "http://www.google.com",
+    "url": "http://www.google.com/",
+    "response_code": 1,
+    "scan_date": "2015-02-07 21:20:06",
+    "scan_id": "dd014af5ed6b38d9130e3f466f850e46d21b951199d53a18ef29ee9341614eaf-1423344006",
+    "verbose_msg": "Scan finished, scan information embedded in this object",
+    "filescan_id": null,
+    "positives": 0,
+    "total": 62,
+    "scans": {
+      "CLEAN MX": {
+        "detected": false,
+        "result": "clean site"
+      },
+    }
+  ..
+
+}
+```
+
+#### URL scan endpoint
+
+Calls 'url/scan' VirusTotal API endpoint.
+Submit a url or any other Python enumerable containing the URL addresses:
+
+```python
+urls = ["http://www.google.com", "http://www.yelp.com"]
+vt.post_url_report(urls)
+```
+
+#### Hash report endpoint
 
 Calls `file/report` VirusTotal API endpoint.
 You can request the file reports passing a list of hashes (md5, sha1 or sha2):
@@ -359,37 +427,54 @@ will result in:
 }
 ```
 
+#### Hash rescan endpoint
 
-#### Domain reports
+Calls `file/rescan` VirusTotal API endpoint. Use to rescan a previously submitted file.
+You can request the file reports passing a list of hashes (md5, sha1 or sha2):
 
-Calls `domain/report` VirusTotal API endpoint.
-Pass a list or any other Python enumerable containing the domains:
+#### Hash behaviour endpoint
+
+Calls `file/behaviour` VirusTotal API endpoint. Use to get a report about the behaviour of the file when executed in a sandboxed environment (Cuckoo sandbox).
+You can request the file reports passing a list of hashes (md5, sha1 or sha2):
 
 ```python
-domains = ["google.com", "baidu.com", "bibikun.ru"]
-vt.get_domain_reports(domains)
+file_hashes = [
+    "99017f6eebbac24f351415dd410d522d",
+    "88817f6eebbac24f351415dd410d522d"
+]
+
+vt.get_file_behaviour(file_hashes)
 ```
 
-will result in:
+#### Hash network-traffic endpoint
 
-```
-{
-  "baidu.com": {
-    "undetected_referrer_samples": [
-      {
-        "positives": 0,
-        "total": 56,
-        "sha256": "e3c1aea1352362e4b5c008e16b03810192d12a4f1cc71245f5a75e796c719c69"
-      }
-    ],
-    
-    ..
+Calls `file/network-traffic` VirusTotal API endpoint. Use to get the dump of the network traffic generated by the file when executed.
+You can request the file reports passing a list of hashes (md5, sha1 or sha2):
 
-    }
-}
+```python
+file_hashes = [
+    "99017f6eebbac24f351415dd410d522d",
+    "88817f6eebbac24f351415dd410d522d"
+]
+
+vt.get_file_network_traffic(file_hashes)
 ```
 
-#### IP reports
+#### Hash download endpoint
+
+Calls `file/download` VirusTotal API endpoint. Use to download a file by its hash.
+You can request the file reports passing a list of hashes (md5, sha1 or sha2):
+
+```python
+file_hashes = [
+    "99017f6eebbac24f351415dd410d522d",
+    "88817f6eebbac24f351415dd410d522d"
+]
+
+vt.get_file_download(file_hashes)
+```
+
+#### IP reports endpoint
 
 Calls `ip-address/report` VirusTotal API endpoint.
 Pass a list or any other Python enumerable containing the IP addresses:
@@ -446,40 +531,36 @@ will result in:
 }
 ```
 
-#### URL reports
+#### URL live feed endpoint
 
-Calls `url/report` VirusTotal API endpoint.
-Pass a list or any other Python enumerable containing the URL addresses:
+Calls `url/distribution` VirusTotal API endpoint. Use to get a live a feed with the latest URLs submitted to VirusTotal.
 
 ```python
-urls = ["http://www.google.com", "http://www.yelp.com"]
-vt.get_url_reports(urls)
+vt.get_url_distribution()
 ```
 
-will result in:
+#### Hash live feed endpoint
 
+Calls `file/distribution` VirusTotal API endpoint. Use to get a live a feed with the latest Hashes submitted to VirusTotal.
+
+```python
+vt.get_file_distribution()
 ```
-{
-  "http://www.google.com": {
-    "permalink": "https://www.virustotal.com/url/dd014af5ed6b38d9130e3f466f850e46d21b951199d53a18ef29ee9341614eaf/analysis/1423344006/",
-    "resource": "http://www.google.com",
-    "url": "http://www.google.com/",
-    "response_code": 1,
-    "scan_date": "2015-02-07 21:20:06",
-    "scan_id": "dd014af5ed6b38d9130e3f466f850e46d21b951199d53a18ef29ee9341614eaf-1423344006",
-    "verbose_msg": "Scan finished, scan information embedded in this object",
-    "filescan_id": null,
-    "positives": 0,
-    "total": 62,
-    "scans": {
-      "CLEAN MX": {
-        "detected": false,
-        "result": "clean site"
-      },
-    }
-  ..
 
-}
+#### Hash search endpoint
+
+Calls `file/search` VirusTotal API endpoint. Use to search for samples that match some binary/metadata/detection criteria.
+
+```python
+vt.get_file_search()
+```
+
+#### File date endpoint
+
+Calls `file/clusters` VirusTotal API endpoint. Use to list simililarity clusters for a given time frame.
+
+```python
+vt.get_file_clusters()
 ```
 
 ---
@@ -529,7 +610,6 @@ ss.get_bin_test(file_hashes)
 ```shell
 $ pip install threat_intel
 ```
-
 
 ### Testing
 To test, ensure that basic dependencies are satisfied by running in [virtualenv](https://virtualenv.pypa.io/en/latest/):

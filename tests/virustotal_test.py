@@ -43,6 +43,36 @@ class VirusTotalApiTest(T.TestCase):
                             expected_result={'file1': {'resource': 'file1'},
                                              'file2': {'resource': 'file2'}})
 
+    def test_get_file_behaviour(self):
+        self._test_api_call(call=self.vt.get_file_behaviour,
+                            endpoint='file/behaviour',
+                            request=['file1', 'file2'],
+                            expected_query_params=[{'resource': 'file1,file2',
+                                                    'apikey': 'test_key'}],
+                            api_response=[{'resource': 'file1'}, {'resource': 'file2'}],
+                            expected_result={'file1': {'resource': 'file1'},
+                                             'file2': {'resource': 'file2'}})
+
+    def test_get_file_network_traffic(self):
+        self._test_api_call(call=self.vt.get_file_network_traffic,
+                            endpoint='file/network-traffic',
+                            request=['file1', 'file2'],
+                            expected_query_params=[{'resource': 'file1,file2',
+                                                    'apikey': 'test_key'}],
+                            api_response=[{'resource': 'file1'}, {'resource': 'file2'}],
+                            expected_result={'file1': {'resource': 'file1'},
+                                             'file2': {'resource': 'file2'}})
+
+    def test_get_file_download(self):
+        self._test_api_call(call=self.vt.get_file_download,
+                            endpoint='file/download',
+                            request=['file1', 'file2'],
+                            expected_query_params=[{'resource': 'file1,file2',
+                                                    'apikey': 'test_key'}],
+                            api_response=[{'resource': 'file1'}, {'resource': 'file2'}],
+                            expected_result={'file1': {'resource': 'file1'},
+                                             'file2': {'resource': 'file2'}})
+
     def test_get_domain_reports(self):
         self._test_api_call(call=self.vt.get_domain_reports,
                             endpoint='domain/report',
