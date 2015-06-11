@@ -612,13 +612,7 @@ $ pip install threat_intel
 ```
 
 ### Testing
-To test, ensure that basic dependencies are satisfied by running in [virtualenv](https://virtualenv.pypa.io/en/latest/):
-
-```shell
-$ pip install requirements-dev.txt
-```
-
-Then go to town with `make`:
+Go to town with `make`:
 
 ```shell
 $ sudo pip install tox

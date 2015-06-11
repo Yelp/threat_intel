@@ -15,6 +15,7 @@ setup(
     description="Collection of the API calls for various threat intel feeds.",
     packages=find_packages(),
     install_requires=[
+        "requests[security]==2.7.0",
         "grequests==0.2.0",
         "simplejson==3.6.5",
     ],

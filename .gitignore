@@ -52,3 +52,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+.coverage
+venv-threat_intel/
+.DS_Store

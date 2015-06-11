@@ -127,7 +127,7 @@ class VirusTotalApi(object):
         Returns:
             A dict with the VT report.
         """
-        params = params  or {}
+        params = params or {}
         all_responses = {}
         api_name = 'virustotal-url-distribution'
 
