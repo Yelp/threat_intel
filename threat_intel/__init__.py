@@ -31,14 +31,16 @@ To initialize the API wrapper you need the API key:
 
     >>> investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>")
 
-You can also specify a file name where the API responses will be cached in a JSON file, to save you the bandwidth for the multiple calls about the same domains or IPs:
+You can also specify a file name where the API responses will be cached in a JSON file, to save you the bandwidth for the multiple calls
+about the same domains or IPs:
 
     >>> investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>", cache_file_name="/tmp/cache.opendns.json")
 
 
 Domain categorization
 ---------------------
-Calls domains/categorization/?showLabels Investigate API endpoint. It takes a list (or any other Python enumerable) of domains and returns the categories associated with this domains by OpenDNS.
+Calls domains/categorization/?showLabels Investigate API endpoint. It takes a list (or any other Python enumerable) of domains and returns
+the categories associated with this domains by OpenDNS.
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
     >>> investigate.categorization(domains)
@@ -53,7 +55,8 @@ will result in:
 
 Security information about a domain
 -----------------------------------
-Calls security/name/ Investigate API endpoint. It takes any Python enumerable with domains, e.g. list, and returns security parameters associated with each domain.
+Calls security/name/ Investigate API endpoint. It takes any Python enumerable with domains, e.g. list, and returns security parameters
+associated with each domain.
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
     >>> investigate.security(domains)
@@ -79,7 +82,8 @@ will result in:
 
 Co-ooccurrences of domain
 --------------------------
-Calls recommendations/name/ Investigate API endpoint. Use this method to find out related domains to the one given in a list, or any other Python enumerable.
+Calls recommendations/name/ Investigate API endpoint. Use this method to find out related domains to the one given in a list, or any other
+Python enumerable.
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
     >>> investigate.cooccurrences(domains)
@@ -98,7 +102,9 @@ will result in:
 Related domains for a domain
 ----------------------------
 
-Calls links/name/ Investigate API endpoint. Use this method to find out a list of related domains (domains that have been frequently seen requested around a time window of 60 seconds, but that are not associated with the given domain) to the one given in a list, or any other Python enumerable.
+Calls links/name/ Investigate API endpoint. Use this method to find out a list of related domains (domains that have been frequently seen
+requested around a time window of 60 seconds, but that are not associated with the given domain) to the one given in a list, or any other
+Python enumerable.
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
     >>> investigate.related_domains(domains)
@@ -120,7 +126,8 @@ Domain tagging dates for a domain
 
 Calls domains/name/ Investigate API endpoint.
 
-Use this method to get the date range when the domain being queried was a part of the OpenDNS block list and how long a domain has been in this list
+Use this method to get the date range when the domain being queried was a part of the OpenDNS block list and how long a domain has been in
+this list
 
     >>> domains = ["google.com", "baidu.com", "bibikun.ru"]
     >>> investigate.domain_tag(domains)
@@ -143,7 +150,8 @@ will result in:
 
 DNS RR history for an IP
 ------------------------
-Calls dnsdb/ip/a/ Investigate API endpoint. Use this method to find out related domains to the IP addresses given in a list, or any other Python enumerable.
+Calls dnsdb/ip/a/ Investigate API endpoint. Use this method to find out related domains to the IP addresses given in a list, or any other
+Python enumerable.
 
     >>> ips = ['8.8.8.8']
     >>> investigate.rr_history(ips)
@@ -193,14 +201,17 @@ To initialize the API wrapper you need the API key:
 
     >>> vt = VirusTotalApi("<VIRUSTOTAL-API-KEY-HERE>")
 
-VirusTotal API calls allow to squeeze a list of file hashes or URLs into a single HTTP call. Depending on the API version you are using (public or private) you may need to tune the maximum number
-of the resources (file hashes or URLs) that could be passed in a single API call. You can do it with the resources_per_req parameter:
+VirusTotal API calls allow to squeeze a list of file hashes or URLs into a single HTTP call. Depending on the API version you are using
+(public or private) you may need to tune the maximum number of the resources (file hashes or URLs) that could be passed in a single API
+call. You can do it with the resources_per_req parameter:
 
     >>> vt = VirusTotalApi("<VIRUSTOTAL-API-KEY-HERE>", resources_per_req=4)
 
-When using the public API your standard request rate allows you too put maximum 4 resources per request. With private API you are able to put up to 25 resources per call. That is also the default value if you don't pass the resources_per_req parameter.
+When using the public API your standard request rate allows you too put maximum 4 resources per request. With private API you are able to
+put up to 25 resources per call. That is also the default value if you don't pass the resources_per_req parameter.
 
-Of course when calling the API wrapper methods in the VirusTotalApi class you can pass as many resources as you want and the wrapper will take care of producing as many API calls as necessary to satisfy the request rate.
+Of course when calling the API wrapper methods in the VirusTotalApi class you can pass as many resources as you want and the wrapper will
+take care of producing as many API calls as necessary to satisfy the request rate.
 
 Similarly to OpenDNS API wrapper, you can also specify the file name where the responses will be cached:
 
@@ -304,8 +315,8 @@ You can request the file reports passing a list of hashes (md5, sha1 or sha2):
 
 #### Hash behaviour endpoint
 
-Calls `file/behaviour` VirusTotal API endpoint. Use to get a report about the behaviour of the file when executed in a sandboxed environment (Cuckoo sandbox).
-You can request the file reports passing a list of hashes (md5, sha1 or sha2):
+Calls `file/behaviour` VirusTotal API endpoint. Use to get a report about the behaviour of the file when executed in a sandboxed
+environment (Cuckoo sandbox). You can request the file reports passing a list of hashes (md5, sha1 or sha2):
 
 
     >>> vt.get_file_behaviour(file_hashes)
@@ -371,7 +382,8 @@ You can also specify the file name where the API responses will be cached:
 
     >>> ss = ShadowServerApi(cache_file_name="/tmp/cache.shadowserver.json")
 
-To check whether the hashes are on the ShadowServer list of known hashes, call get_bin_test method and pass enumerable with the hashes you want to test:
+To check whether the hashes are on the ShadowServer list of known hashes, call get_bin_test method and pass enumerable with the hashes you
+want to test:
 
     >>> file_hashes = [
         "99017f6eebbac24f351415dd410d522d",

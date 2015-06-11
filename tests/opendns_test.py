@@ -36,56 +36,56 @@ class InvestigateApiTest(T.TestCase):
 
     def test_security(self):
         self._test_api_call_get(call=self.opendns.security,
-                            endpoint=u'security/name/{0}.json',
-                            request=['domain'],
-                            expected_query_params='domain',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'security/name/{0}.json',
+                                request=['domain'],
+                                expected_query_params='domain',
+                                api_response={},
+                                expected_result={})
 
     def test_coocurrences(self):
         self._test_api_call_get(call=self.opendns.cooccurrences,
-                            endpoint=u'recommendations/name/{0}.json',
-                            request=['domain'],
-                            expected_query_params='domain',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'recommendations/name/{0}.json',
+                                request=['domain'],
+                                expected_query_params='domain',
+                                api_response={},
+                                expected_result={})
 
     def test_rr_history(self):
         self._test_api_call_get(call=self.opendns.rr_history,
-                            endpoint=u'dnsdb/ip/a/{0}.json',
-                            request=['8.8.8.8'],
-                            expected_query_params='8.8.8.8',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'dnsdb/ip/a/{0}.json',
+                                request=['8.8.8.8'],
+                                expected_query_params='8.8.8.8',
+                                api_response={},
+                                expected_result={})
 
     def test_latest_malicious(self):
         self._test_api_call_get(call=self.opendns.latest_malicious,
-                            endpoint=u'ips/{0}/latest_domains',
-                            request=['8.8.8.8'],
-                            expected_query_params='8.8.8.8',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'ips/{0}/latest_domains',
+                                request=['8.8.8.8'],
+                                expected_query_params='8.8.8.8',
+                                api_response={},
+                                expected_result={})
 
     def test_domain_tag(self):
         self._test_api_call_get(call=self.opendns.domain_tag,
-                            endpoint=u'domains/{0}/latest_tags',
-                            request=['domain'],
-                            expected_query_params='domain',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'domains/{0}/latest_tags',
+                                request=['domain'],
+                                expected_query_params='domain',
+                                api_response={},
+                                expected_result={})
 
     def test_dns_rr(self):
         self._test_api_call_get(call=self.opendns.dns_rr,
-                            endpoint=u'dnsdb/name/a/{0}.json',
-                            request=['domain'],
-                            expected_query_params='domain',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'dnsdb/name/a/{0}.json',
+                                request=['domain'],
+                                expected_query_params='domain',
+                                api_response={},
+                                expected_result={})
 
     def test_related_domains(self):
         self._test_api_call_get(call=self.opendns.related_domains,
-                            endpoint=u'links/name/{0}.json',
-                            request=['domain'],
-                            expected_query_params='domain',
-                            api_response={},
-                            expected_result={})
+                                endpoint=u'links/name/{0}.json',
+                                request=['domain'],
+                                expected_query_params='domain',
+                                api_response={},
+                                expected_result={})
