@@ -18,5 +18,6 @@ setup(
         "requests[security]==2.7.0",
         "grequests==0.2.0",
         "simplejson==3.6.5",
+        "urllib3==1.10.4"
     ],
 )

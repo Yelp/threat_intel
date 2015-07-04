@@ -5,14 +5,41 @@
 # RateLimiter helps to only make a certain number of calls per second.
 # MultiRequest wraps grequests and issues multiple requests at once with an easy to use interface.
 #
+import ssl
 import time
 from collections import namedtuple
 
 import grequests
+from requests import Session
+from requests.adapters import HTTPAdapter
+from urllib3 import PoolManager
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
+
+
+class SSLAdapter(HTTPAdapter):
+
+    """Require TLSv1 for the connection"""
+
+    def __init__(self, ssl_version=None, **kwargs):
+        self._ssl_version = ssl_version
+        super(SSLAdapter, self).__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        # This method gets called when there's no proxy.
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_version=self._ssl_version,
+        )
+
+    def proxy_manager_for(self, proxy, **kwargs):
+        # This method is called when there is a proxy.
+        kwargs['ssl_version'] = self._ssl_version
+        return super(SSLAdapter, self).proxy_manager_for(proxy, **kwargs)
 
 
 class RateLimiter(object):
@@ -71,7 +98,7 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0):
+    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0, ssl_version=ssl.PROTOCOL_TLSv1_2):
         """Create the MultiRequest.
 
         Args:
@@ -79,11 +106,14 @@ class MultiRequest(object):
             max_requests - Maximum number of requests to issue at once
             rate_limit - Maximum number of requests to issue per second
             req_timeout - Maximum number of seconds to wait without reading a response byte before deciding an error has occurred
+            ssl_version - Which version of SSL/TLS protocol to require
         """
         self._default_headers = default_headers
         self._max_requests = max_requests
         self._req_timeout = req_timeout
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
+        self._session = Session()
+        self._session.mount('https://', SSLAdapter(ssl_version=ssl_version))
 
     def multi_get(self, urls, query_params=None, to_json=True):
         """Issue multiple GET requests.
@@ -131,12 +161,15 @@ class MultiRequest(object):
         """
         if MultiRequest._VERB_POST == verb:
             if not send_as_file:
-                return grequests.post(url, headers=self._default_headers, params=query_params, data=data, timeout=self._req_timeout)
+                return grequests.post(url, headers=self._default_headers, params=query_params, data=data,
+                                      timeout=self._req_timeout, session=self._session)
             else:
                 files = {'file': data}
-                return grequests.post(url, headers=self._default_headers, params=query_params, files=files, timeout=self._req_timeout)
+                return grequests.post(url, headers=self._default_headers, params=query_params, files=files,
+                                      timeout=self._req_timeout, session=self._session)
         elif MultiRequest._VERB_GET == verb:
-            return grequests.get(url, headers=self._default_headers, params=query_params, data=data, timeout=self._req_timeout)
+            return grequests.get(url, headers=self._default_headers, params=query_params, data=data,
+                                 timeout=self._req_timeout, session=self._session)
         else:
             raise InvalidRequestError('Invalid verb {0}'.format(verb))
 
