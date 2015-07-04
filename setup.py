@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="threat_intel",
-    version='0.1.3',
+    version='0.1.4',
     provides=['threat_intel'],
     author="Yelp Security",
     url='https://github.com/Yelp/threat_intel',
@@ -17,7 +17,6 @@ setup(
     install_requires=[
         "requests[security]==2.7.0",
         "grequests==0.2.0",
-        "simplejson==3.6.5",
-        "urllib3==1.10.4"
+        "simplejson==3.6.5"
     ],
 )

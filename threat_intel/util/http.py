@@ -12,7 +12,6 @@ from collections import namedtuple
 import grequests
 from requests import Session
 from requests.adapters import HTTPAdapter
-from urllib3 import PoolManager
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -21,25 +20,38 @@ from threat_intel.util.error_messages import write_exception
 
 class SSLAdapter(HTTPAdapter):
 
-    """Require TLSv1 for the connection"""
+    """Attempt to use the highest possible TLS version for HTTPS connections.
 
-    def __init__(self, ssl_version=None, **kwargs):
-        self._ssl_version = ssl_version
-        super(SSLAdapter, self).__init__(**kwargs)
+    By explictly controlling which TLS version is used when connecting, avoid the client offering only SSLv2 or SSLv3.
 
-    def init_poolmanager(self, connections, maxsize, block=False):
-        # This method gets called when there's no proxy.
-        self.poolmanager = PoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            ssl_version=self._ssl_version,
-        )
+    While it may seem counter intuitive, the best version specifier to pass is `ssl.PROTOCOL_SSLv23`
+    This will actually choose the highest available protocol compatible with both client and server.
+    For details see the documentation for `ssl.wrap_socket` https://docs.python.org/2/library/ssl.html#socket-creation
 
-    def proxy_manager_for(self, proxy, **kwargs):
-        # This method is called when there is a proxy.
-        kwargs['ssl_version'] = self._ssl_version
-        return super(SSLAdapter, self).proxy_manager_for(proxy, **kwargs)
+    To use this class, mount it to a `requests.Session` and then make HTTPS using the session object.
+
+    .. code-block:: python
+        # Mount an SSLAdapter in a Session
+        session = requests.Session()
+        session.mount('https://', SSLAdapter())
+
+        # Make a requests call through the session
+        session.get('https://api.github.com/events')
+
+        # Make a grequests call through the session
+        grequests.get('https://api.github.com/events', session=session)
+
+    """
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        """Called to initialize the HTTPAdapter when no proxy is used."""
+        pool_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        return super(SSLAdapter, self).init_poolmanager(connections, maxsize, block, **pool_kwargs)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        """Called to initialize the HTTPAdapter when a proxy is used."""
+        proxy_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        return super(SSLAdapter, self).proxy_manager_for(proxy, **proxy_kwargs)
 
 
 class RateLimiter(object):
@@ -98,7 +110,7 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0, ssl_version=ssl.PROTOCOL_TLSv1_2):
+    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0):
         """Create the MultiRequest.
 
         Args:
@@ -106,14 +118,13 @@ class MultiRequest(object):
             max_requests - Maximum number of requests to issue at once
             rate_limit - Maximum number of requests to issue per second
             req_timeout - Maximum number of seconds to wait without reading a response byte before deciding an error has occurred
-            ssl_version - Which version of SSL/TLS protocol to require
         """
         self._default_headers = default_headers
         self._max_requests = max_requests
         self._req_timeout = req_timeout
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()
-        self._session.mount('https://', SSLAdapter(ssl_version=ssl_version))
+        self._session.mount('https://', SSLAdapter())
 
     def multi_get(self, urls, query_params=None, to_json=True):
         """Issue multiple GET requests.
@@ -159,17 +170,22 @@ class MultiRequest(object):
         Raises:
             InvalidRequestError - if an invalid verb is passed in.
         """
+
+        # Prepare a set of kwargs to make it easier to avoid missing default params.
+        kwargs = {
+            'headers': self._default_headers,
+            'params': query_params,
+            'timeout': self._req_timeout,
+            'session': self._session
+        }
+
         if MultiRequest._VERB_POST == verb:
             if not send_as_file:
-                return grequests.post(url, headers=self._default_headers, params=query_params, data=data,
-                                      timeout=self._req_timeout, session=self._session)
+                return grequests.post(url, data=data, **kwargs)
             else:
-                files = {'file': data}
-                return grequests.post(url, headers=self._default_headers, params=query_params, files=files,
-                                      timeout=self._req_timeout, session=self._session)
+                return grequests.post(url, files={'file': data}, **kwargs)
         elif MultiRequest._VERB_GET == verb:
-            return grequests.get(url, headers=self._default_headers, params=query_params, data=data,
-                                 timeout=self._req_timeout, session=self._session)
+            return grequests.get(url, data=data, **kwargs)
         else:
             raise InvalidRequestError('Invalid verb {0}'.format(verb))
 
