@@ -25,7 +25,7 @@ OpenDNS Investigate  provides an API that allows querying for:
 
 To use the Investigate API wrapper import InvestigateApi class from threat_intel.opendns module:
 
-    >>> from threat_intel.opendns import InvestigateApi
+    >>> from threat_intel import InvestigateApi
 
 To initialize the API wrapper you need the API key:
 
@@ -195,7 +195,7 @@ VirusTotal provides an API that makes it possible to query for the reports about
 
 To use the VirusTotal API wrapper import VirusTotalApi class from threat_intel.virustotal module:
 
-    >>> from threat_intel.virustotal import VirusTotalApi
+    >>> from threat_intel import VirusTotalApi
 
 To initialize the API wrapper you need the API key:
 
@@ -372,7 +372,7 @@ ShadowServer provides and API that allows to test the hashes against a list of k
 
 To use the ShadowServer API wrapper import ShadowServerApi class from threat_intel.shadowserver module:
 
-    >>> from threat_intel.shadowserver import ShadowServerApi
+    >>> from threat_intel import ShadowServerApi
 
 To use the API wrapper simply call the ShadowServerApi initializer:
 
@@ -393,5 +393,10 @@ want to test:
     >>> ss.get_bin_test(file_hashes)
 
 """
+from exceptions import InvalidRequestError
 
-__all__ = ['exceptions', 'opendns', 'shadowserver', 'virustotal']
+from opendns import InvestigateApi
+from shadowserver import ShadowServerApi
+from virustotal import VirusTotalApi
+
+__all__ = ['InvalidRequestError', 'InvestigateApi', 'ShadowServerApi', 'VirusTotalApi']
