@@ -137,6 +137,16 @@ class InvestigateApi(object):
         fmt_url_path = u'security/name/{0}.json'
         return self._multi_get(api_name, fmt_url_path, domains)
 
+    def whois_emails(self, emails):
+        api_name = 'opendns-whois-emails'
+        fmt_url_path = u'whois/emails/{0}'
+        return self._multi_get(api_name, fmt_url_path, emails)
+
+    def whois_nameservers(self, nss):
+        api_name = 'opendns-whois-nameservers'
+        fmt_url_path = u'whois/nameservers/{0}'
+        return self._multi_get(api_name, fmt_url_path, nss)
+
     def cooccurrences(self, domains):
         """Get the domains related to input domains.
 

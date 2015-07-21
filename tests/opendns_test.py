@@ -42,6 +42,22 @@ class InvestigateApiTest(T.TestCase):
                                 api_response={},
                                 expected_result={})
 
+    def test_whois_emails(self):
+        self._test_api_call_get(call=self.opendns.whois_emails,
+                                endpoint=u'whois/emails/{0}',
+                                request=['admin@dns.com'],
+                                expected_query_params='admin@dns.com',
+                                api_response={},
+                                expected_result={})
+
+    def test_whois_nameservers(self):
+        self._test_api_call_get(call=self.opendns.whois_nameservers,
+                                endpoint=u'whois/nameservers/{0}',
+                                request=['ns.dns.com'],
+                                expected_query_params='ns.dns.com',
+                                api_response={},
+                                expected_result={})
+
     def test_coocurrences(self):
         self._test_api_call_get(call=self.opendns.cooccurrences,
                                 endpoint=u'recommendations/name/{0}.json',
