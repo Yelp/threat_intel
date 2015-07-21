@@ -137,6 +137,54 @@ class InvestigateApi(object):
         fmt_url_path = u'security/name/{0}.json'
         return self._multi_get(api_name, fmt_url_path, domains)
 
+    def whois_emails(self, emails):
+        """Calls WHOIS Email end point
+
+        Args:
+            emails: An enumerable of string Emails
+        Returns:
+            A dict of {email: domain_result}
+        """
+        api_name = 'opendns-whois-emails'
+        fmt_url_path = u'whois/emails/{0}'
+        return self._multi_get(api_name, fmt_url_path, emails)
+
+    def whois_nameservers(self, nameservers):
+        """Calls WHOIS Nameserver end point
+
+        Args:
+            emails: An enumerable of nameservers
+        Returns:
+            A dict of {nameserver: domain_result}
+        """
+        api_name = 'opendns-whois-nameservers'
+        fmt_url_path = u'whois/nameservers/{0}'
+        return self._multi_get(api_name, fmt_url_path, nameservers)
+
+    def whois_domain(self, domains):
+        """Calls WHOIS domain end point
+
+        Args:
+            domains: An enumerable of domains
+        Returns:
+            A dict of {domain: domain_result}
+        """
+        api_name = 'opendns-whois-domain'
+        fmt_url_path = u'whois/{0}'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def whois_domain_history(self, domains):
+        """Calls WHOIS domain history end point
+
+        Args:
+            domains: An enumerable of domains
+        Returns:
+            A dict of {domain: domain_history_result}
+        """
+        api_name = 'opendns-whois-domain-history'
+        fmt_url_path = u'whois/{0}/history'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
     def cooccurrences(self, domains):
         """Get the domains related to input domains.
 
