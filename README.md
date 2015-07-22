@@ -24,6 +24,8 @@ allows querying for:
     * Domains related to an IP
     * Domain tagging dates for a domain
     * DNS RR history for a domain
+    * WHOIS information for a domain
+    * Latest malicious domains for an IP
 
 To use the Investigate API wrapper import `InvestigateApi` class from `threat_intel.opendns` module:
 
@@ -243,11 +245,129 @@ will result in:
 }
 ```
 
+#### WHOIS information for a domain
+
+##### WHOIS information for an email
+
+Calls `whois/emails/{email}` Investigate API endpoint.
+
+Use this method to see WHOIS information for the email address. (For now the OpenDNS API will only return at most 500 results)
+
+```python
+emails = ["dns-admin@google.com"]
+investigate.whois_emails(emails)
+```
+
+will result in:
+
+```
+{
+    "dns-admin@google.com": {
+        "totalResults": 500,
+        "moreDataAvailable": true,
+        "limit": 500,
+        "domains": [
+            {
+                "domain": "0emm.com",
+                "current": true
+            },
+            ..
+        ]
+    }
+}
+```
+
+##### WHOIS information for a nameserver
+
+Calls `whois/nameservers/{nameserver}` Investigate API endpoint.
+
+Use this method to see WHOIS information for the nameserver. (For now the OpenDNS API will only return at most 500 results)
+
+```python
+nameservers = ["ns2.google.com"]
+investigate.whois_emails(nameservers)
+```
+
+will result in:
+
+```
+{
+    "ns2.google.com": {
+        "totalResults": 500,
+        "moreDataAvailable": true,
+        "limit": 500,
+        "domains": [
+            {
+                "domain": "46645.biz",
+                "current": true
+            },
+            ..
+        ]
+    }
+}
+```
+
+##### WHOIS information for a domain
+
+Calls `whois/{domain}` Investigate API endpoint.
+
+Use this method to see WHOIS information for the domain.
+
+```python
+domains = ["google.com"]
+investigate.whois_emails(domains)
+```
+
+will result in:
+
+```
+{
+    "administrativeContactFax": null,
+    "whoisServers": null,
+    "addresses": [
+        "1600 amphitheatre parkway",
+        "please contact contact-admin@google.com, 1600 amphitheatre parkway",
+        "2400 e. bayshore pkwy"
+    ],
+    ..
+}
+```
+
+##### Historical WHOIS information for a domain
+
+Calls `whois/{domain}/history` Investigate API endpoint.
+
+Use this method to see historical WHOIS information for the domain.
+
+```python
+domains = ["5esb.biz"]
+investigate.whois_emails(domains)
+```
+
+will result in:
+
+```
+{
+    '5esb.biz':[
+        {
+            u'registrantFaxExt':u'',
+            u'administrativeContactPostalCode':u'656448',
+            u'zoneContactCity':u'',
+            u'addresses':[
+                u'nan qu hua yuan xiao he'
+            ],
+            ..
+        },
+        ..
+    ]
+}
+```
+
 #### Latest malicious domains for an IP
 
 Calls `ips/{ip}/latest_domains` Investigate API endpoint.
 
-Use this methods to see whether the IP address has any malicious domains associated with it.
+Use this method to see whether the IP address has any malicious domains associated with it.
 
 ```python
 ips = ["8.8.8.8"]
@@ -257,7 +377,7 @@ investigate.latest_malicious(ips)
 will result in:
 
 ```
-}
+{
     [
         '7ltd.biz',
         'co0s.ru',
