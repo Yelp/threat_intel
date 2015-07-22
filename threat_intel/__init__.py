@@ -22,7 +22,10 @@ OpenDNS Investigate  provides an API that allows querying for:
     * Domains related to an IP
     * Domain tagging dates for a domain
     * DNS RR history for a domain
-    * WHOIS information for a domain
+    * WHOIS information
+        * WHOIS information for an email
+        * WHOIS information for a nameserver
+        * Historical WHOIS information for a domain
     * Latest malicious domains for an IP
 
 To use the Investigate API wrapper import InvestigateApi class from threat_intel.opendns module:
