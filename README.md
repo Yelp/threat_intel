@@ -288,7 +288,7 @@ Use this method to see WHOIS information for the nameserver. (For now the OpenDN
 
 ```python
 nameservers = ["ns2.google.com"]
-investigate.whois_emails(nameservers)
+investigate.whois_nameservers(nameservers)
 ```
 
 will result in:
@@ -318,7 +318,7 @@ Use this method to see WHOIS information for the domain.
 
 ```python
 domains = ["google.com"]
-investigate.whois_emails(domains)
+investigate.whois_domains(domains)
 ```
 
 will result in:
@@ -344,7 +344,7 @@ Use this method to see historical WHOIS information for the domain.
 
 ```python
 domains = ["5esb.biz"]
-investigate.whois_emails(domains)
+investigate.whois_domains_history(domains)
 ```
 
 will result in:
