@@ -221,7 +221,7 @@ Calls `whois/nameservers/{nameserver}` Investigate API endpoint.
 Use this method to see WHOIS information for the nameserver. (For now the OpenDNS API will only return at most 500 results)
 
     >>> nameservers = ["ns2.google.com"]
-    >>> investigate.whois_emails(nameservers)
+    >>> investigate.whois_nameservers(nameservers)
 
 will result in:
 
@@ -248,7 +248,7 @@ Calls `whois/{domain}` Investigate API endpoint.
 Use this method to see WHOIS information for the domain.
 
     >>> domains = ["google.com"]
-    >>> investigate.whois_emails(domains)
+    >>> investigate.whois_domains(domains)
 
 will result in:
 
@@ -271,7 +271,7 @@ Calls `whois/{domain}/history` Investigate API endpoint.
 Use this method to see historical WHOIS information for the domain.
 
     >>> domains = ["5esb.biz"]
-    >>> investigate.whois_emails(domains)
+    >>> investigate.whois_domains_history(domains)
 
 will result in:
 

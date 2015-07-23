@@ -58,16 +58,16 @@ class InvestigateApiTest(T.TestCase):
                                 api_response={},
                                 expected_result={})
 
-    def test_whois_domain(self):
-        self._test_api_call_get(call=self.opendns.whois_domain,
+    def test_whois_domains(self):
+        self._test_api_call_get(call=self.opendns.whois_domains,
                                 endpoint=u'whois/{0}',
                                 request=['google.com'],
                                 expected_query_params='google.com',
                                 api_response={},
                                 expected_result={})
 
-    def test_whois_domain_history(self):
-        self._test_api_call_get(call=self.opendns.whois_domain_history,
+    def test_whois_domains_history(self):
+        self._test_api_call_get(call=self.opendns.whois_domains_history,
                                 endpoint=u'whois/{0}/history',
                                 request=['5esb.biz'],
                                 expected_query_params='5esb.biz',

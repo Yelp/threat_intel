@@ -161,7 +161,7 @@ class InvestigateApi(object):
         fmt_url_path = u'whois/nameservers/{0}'
         return self._multi_get(api_name, fmt_url_path, nameservers)
 
-    def whois_domain(self, domains):
+    def whois_domains(self, domains):
         """Calls WHOIS domain end point
 
         Args:
@@ -173,7 +173,7 @@ class InvestigateApi(object):
         fmt_url_path = u'whois/{0}'
         return self._multi_get(api_name, fmt_url_path, domains)
 
-    def whois_domain_history(self, domains):
+    def whois_domains_history(self, domains):
         """Calls WHOIS domain history end point
 
         Args:
