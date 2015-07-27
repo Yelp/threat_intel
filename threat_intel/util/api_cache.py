@@ -10,14 +10,17 @@ class ApiCache(object):
 
     """creates an on disk cache of API call results."""
 
-    def __init__(self, cache_file_name):
+    def __init__(self, cache_file_name, update_cache=True):
         """Opens the cache file and reads previous results.
 
         Args:
                 cache_file_name: string file name
+                update_cache: Specifies whether ApiCache should write out the
+                              cache file when closing it
         """
         self._cache_file_name = cache_file_name
         self._cache = self._read_cache_from_file()
+        self._update_cache = update_cache
 
     def __del__(self):
         """Ensures cache is persisted to disk before object is destroyed.
@@ -28,9 +31,12 @@ class ApiCache(object):
         self.close()
 
     def close(self):
-        """Write the contents of the cache to disk and clear the in memory cache."""
+        """Write the contents of the cache to disk (only if `update_cache`
+        parameter during the object initialization was not set to `False`) and
+        clear the in memory cache."""
         if self._cache:
-            self._write_cache_to_file()
+            if self._update_cache:
+                self._write_cache_to_file()
             self._cache = None
 
     def _write_cache_to_file(self):
