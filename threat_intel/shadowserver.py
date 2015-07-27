@@ -11,11 +11,13 @@ from threat_intel.util.http import MultiRequest
 class ShadowServerApi(object):
     BINTEST_URL = u'http://bin-test.shadowserver.org/api'
 
-    def __init__(self, cache_file_name=None):
+    def __init__(self, cache_file_name=None, update_cache=True):
         """Establishes basic HTTP params and loads a cache.
 
         Args:
             cache_file_name: String file name of cache.
+            update_cache: Determines whether cache should be written out back to the disk when closing it.
+                          Default is `True`.
         """
 
         # TODO - lookup request rate limit
@@ -23,7 +25,7 @@ class ShadowServerApi(object):
         self._requests = MultiRequest(max_requests=2, req_timeout=90.0)
 
         # Create an ApiCache if instructed to
-        self._cache = ApiCache(cache_file_name) if cache_file_name else None
+        self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
 
     @MultiRequest.error_handling
     def get_bin_test(self, hashes):
