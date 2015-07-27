@@ -4,15 +4,55 @@
 #
 # RateLimiter helps to only make a certain number of calls per second.
 # MultiRequest wraps grequests and issues multiple requests at once with an easy to use interface.
+# SSLAdapter helps force use of the highest possible version of TLS.
 #
+import ssl
 import time
 from collections import namedtuple
 
 import grequests
+from requests import Session
+from requests.adapters import HTTPAdapter
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
+
+
+class SSLAdapter(HTTPAdapter):
+
+    """Attempt to use the highest possible TLS version for HTTPS connections.
+
+    By explictly controlling which TLS version is used when connecting, avoid the client offering only SSLv2 or SSLv3.
+
+    While it may seem counter intuitive, the best version specifier to pass is `ssl.PROTOCOL_SSLv23`
+    This will actually choose the highest available protocol compatible with both client and server.
+    For details see the documentation for `ssl.wrap_socket` https://docs.python.org/2/library/ssl.html#socket-creation
+
+    To use this class, mount it to a `requests.Session` and then make HTTPS using the session object.
+
+    .. code-block:: python
+        # Mount an SSLAdapter in a Session
+        session = requests.Session()
+        session.mount('https://', SSLAdapter())
+
+        # Make a requests call through the session
+        session.get('https://api.github.com/events')
+
+        # Make a grequests call through the session
+        grequests.get('https://api.github.com/events', session=session)
+
+    """
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        """Called to initialize the HTTPAdapter when no proxy is used."""
+        pool_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        return super(SSLAdapter, self).init_poolmanager(connections, maxsize, block, **pool_kwargs)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        """Called to initialize the HTTPAdapter when a proxy is used."""
+        proxy_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        return super(SSLAdapter, self).proxy_manager_for(proxy, **proxy_kwargs)
 
 
 class RateLimiter(object):
@@ -84,6 +124,8 @@ class MultiRequest(object):
         self._max_requests = max_requests
         self._req_timeout = req_timeout
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
+        self._session = Session()
+        self._session.mount('https://', SSLAdapter())
 
     def multi_get(self, urls, query_params=None, to_json=True):
         """Issue multiple GET requests.
@@ -129,14 +171,22 @@ class MultiRequest(object):
         Raises:
             InvalidRequestError - if an invalid verb is passed in.
         """
+
+        # Prepare a set of kwargs to make it easier to avoid missing default params.
+        kwargs = {
+            'headers': self._default_headers,
+            'params': query_params,
+            'timeout': self._req_timeout,
+            'session': self._session
+        }
+
         if MultiRequest._VERB_POST == verb:
             if not send_as_file:
-                return grequests.post(url, headers=self._default_headers, params=query_params, data=data, timeout=self._req_timeout)
+                return grequests.post(url, data=data, **kwargs)
             else:
-                files = {'file': data}
-                return grequests.post(url, headers=self._default_headers, params=query_params, files=files, timeout=self._req_timeout)
+                return grequests.post(url, files={'file': data}, **kwargs)
         elif MultiRequest._VERB_GET == verb:
-            return grequests.get(url, headers=self._default_headers, params=query_params, data=data, timeout=self._req_timeout)
+            return grequests.get(url, data=data, **kwargs)
         else:
             raise InvalidRequestError('Invalid verb {0}'.format(verb))
 

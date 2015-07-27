@@ -9,6 +9,7 @@ from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
 from threat_intel.util.http import MultiRequest
 
+
 def _cached_by_domain(api_name):
     """A caching wrapper for functions that take a list of domains as parameters."""
 
@@ -19,7 +20,7 @@ def _cached_by_domain(api_name):
 
             all_responses = {}
             all_responses = self._cache.bulk_lookup(api_name, domains)
-            domains = set(domains) - set(all_responses)
+            domains = list(set(domains) - set(all_responses))
 
             if domains:
                 response = func(self, domains)
@@ -36,6 +37,7 @@ def _cached_by_domain(api_name):
         return decorated
     return wrapped
 
+
 class InvestigateApi(object):
 
     """Calls the OpenDNS investigate API.
@@ -43,7 +45,7 @@ class InvestigateApi(object):
     Applies rate limits and issues parallel requests.
     """
 
-    BASE_URL = 'https://investigate.api.opendns.com/'
+    BASE_URL = u'https://investigate.api.opendns.com/'
 
     def __init__(self, api_key, cache_file_name=None):
         auth_header = {'Authorization': 'Bearer {0}'.format(api_key)}
@@ -84,7 +86,7 @@ class InvestigateApi(object):
         Returns:
             A dict of {domain: categorization_result}
         """
-        url_path = 'domains/categorization/?showLabels'
+        url_path = u'domains/categorization/?showLabels'
         response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
         return response[0]
 
@@ -132,7 +134,55 @@ class InvestigateApi(object):
             A dict of {domain: security_result}
         """
         api_name = 'opendns-security'
-        fmt_url_path = 'security/name/{0}.json'
+        fmt_url_path = u'security/name/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def whois_emails(self, emails):
+        """Calls WHOIS Email end point
+
+        Args:
+            emails: An enumerable of string Emails
+        Returns:
+            A dict of {email: domain_result}
+        """
+        api_name = 'opendns-whois-emails'
+        fmt_url_path = u'whois/emails/{0}'
+        return self._multi_get(api_name, fmt_url_path, emails)
+
+    def whois_nameservers(self, nameservers):
+        """Calls WHOIS Nameserver end point
+
+        Args:
+            emails: An enumerable of nameservers
+        Returns:
+            A dict of {nameserver: domain_result}
+        """
+        api_name = 'opendns-whois-nameservers'
+        fmt_url_path = u'whois/nameservers/{0}'
+        return self._multi_get(api_name, fmt_url_path, nameservers)
+
+    def whois_domains(self, domains):
+        """Calls WHOIS domain end point
+
+        Args:
+            domains: An enumerable of domains
+        Returns:
+            A dict of {domain: domain_result}
+        """
+        api_name = 'opendns-whois-domain'
+        fmt_url_path = u'whois/{0}'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def whois_domains_history(self, domains):
+        """Calls WHOIS domain history end point
+
+        Args:
+            domains: An enumerable of domains
+        Returns:
+            A dict of {domain: domain_history_result}
+        """
+        api_name = 'opendns-whois-domain-history'
+        fmt_url_path = u'whois/{0}/history'
         return self._multi_get(api_name, fmt_url_path, domains)
 
     def cooccurrences(self, domains):
@@ -144,7 +194,32 @@ class InvestigateApi(object):
             An enumerable of string domain names
         """
         api_name = 'opendns-cooccurrences'
-        fmt_url_path = 'recommendations/name/{0}.json'
+        fmt_url_path = u'recommendations/name/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def domain_tag(self, domains):
+        """Get the data range when a domain is part of OpenDNS block list.
+
+        Args:
+            domains: an enumerable of strings domain names
+        Returns:
+            An enumerable of string with period, category, and url
+        """
+        api_name = 'opendns-domain_tag'
+        fmt_url_path = u'domains/{0}/latest_tags'
+        return self._multi_get(api_name, fmt_url_path, domains)
+
+    def related_domains(self, domains):
+        """Get list of domain names that have been seen requested around the
+        same time (up to 60 seconds before or after) to the given domain name.
+
+        Args:
+            domains: an enumerable of strings domain names
+        Returns:
+            An enumerable of [domain name, scores]
+        """
+        api_name = 'opendns-related_domains'
+        fmt_url_path = u'links/name/{0}.json'
         return self._multi_get(api_name, fmt_url_path, domains)
 
     def rr_history(self, ips):
@@ -153,8 +228,32 @@ class InvestigateApi(object):
         Args:
             ips: an enumerable of strings as ips
         Returns:
-            An enumerable of string domain names
+            An enumerable of resource records and features
         """
         api_name = 'opendns-rr_history'
-        fmt_url_path = 'dnsdb/ip/a/{0}.json'
+        fmt_url_path = u'dnsdb/ip/a/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, ips)
+
+    def dns_rr(self, ips):
+        """Get the domains related to input domains.
+
+        Args:
+            domains: an enumerable of strings as domains
+        Returns:
+            An enumerable of resource records and features
+        """
+        api_name = 'opendns-dns_rr'
+        fmt_url_path = u'dnsdb/name/a/{0}.json'
+        return self._multi_get(api_name, fmt_url_path, ips)
+
+    def latest_malicious(self, ips):
+        """Get the a list of malicious domains related to input ips.
+
+        Args:
+            ips: an enumerable of strings as ips
+        Returns:
+            An enumerable of strings for the malicious domains
+        """
+        api_name = 'opendns-latest_malicious'
+        fmt_url_path = u'ips/{0}/latest_domains'
         return self._multi_get(api_name, fmt_url_path, ips)
