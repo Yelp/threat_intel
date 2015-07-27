@@ -21,7 +21,7 @@ def assert_cache_written(mock_write, patched_open):
 
 
 def assert_cache_not_written(mock_write):
-    T.assert_false(mock_write.called)
+    T.assert_falsey(mock_write.called)
     return None
 
 
