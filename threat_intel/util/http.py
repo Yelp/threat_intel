@@ -13,6 +13,7 @@ from collections import namedtuple
 import grequests
 from requests import Session
 from requests.adapters import HTTPAdapter
+from requests import ConnectionError
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -273,10 +274,31 @@ class MultiRequest(object):
             A list of dicts if to_json, a list of grequest.response otherwise
         """
         all_responses = []
+        
+        retry = 0
+        max_retry = 10
+        responses = None
+        while retry <= max_retry and responses is None:
+            try:
+               retry = retry + 1
+               responses = grequests.map(requests)
+                # test our responses
+                for response in responses:
+                   # for some odd conditions, requests will neither return an object nor raise an error
+                   if not response:
+                       #raise an error so we trigger a retry
+                       responses = None
+                       raise ConnectionError('Batch of requests had an empty response')
+            except:
+                pass
+        
+        if responses is None:
+            raise ConnectionError('Unable to complete batch of requests within max_retry retries')
 
-        for request, response in zip(requests, grequests.map(requests)):
+        for request, response in zip(requests, responses):
             if not response:
-                response = MultiRequest._FakeResponse(request, '<UNKNOWN>')
+                # should have caught this earlier, but if not ...
+                raise ConnectionError('Request to %s had an empty reponse' % request.url)
 
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
