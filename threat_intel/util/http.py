@@ -112,7 +112,7 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0):
+    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0, max_retry=10):
         """Create the MultiRequest.
 
         Args:
@@ -124,6 +124,7 @@ class MultiRequest(object):
         self._default_headers = default_headers
         self._max_requests = max_requests
         self._req_timeout = req_timeout
+        self._max_retry = max_retry
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()
         self._session.mount('https://', SSLAdapter())
@@ -274,31 +275,32 @@ class MultiRequest(object):
             A list of dicts if to_json, a list of grequest.response otherwise
         """
         all_responses = []
-        
+
+        import pdb
+        pdb.set_trace()
         retry = 0
-        max_retry = 10
         responses = None
-        while retry <= max_retry and responses is None:
+        while retry <= self._max_retry and not responses:
             try:
-               retry = retry + 1
-               responses = grequests.map(requests)
-                # test our responses
+                retry += 1
+                responses = grequests.map(requests)
+                # test each response 
                 for response in responses:
-                   # for some odd conditions, requests will neither return an object nor raise an error
-                   if not response:
-                       #raise an error so we trigger a retry
-                       responses = None
-                       raise ConnectionError('Batch of requests had an empty response')
+                  # for some odd conditions, requests will neither return an object nor raise an error
+                  if not response:
+                    #raise an error so we trigger a retry
+                    responses = None
+                    raise ConnectionError('Batch of requests had an empty response')
             except:
                 pass
-        
-        if responses is None:
+
+        if not responses:
             raise ConnectionError('Unable to complete batch of requests within max_retry retries')
 
         for request, response in zip(requests, responses):
             if not response:
                 # should have caught this earlier, but if not ...
-                raise ConnectionError('Request to %s had an empty reponse' % request.url)
+                raise ConnectionError('Request to {0} had an empty response'.format(request.url))
 
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
