@@ -276,25 +276,18 @@ class MultiRequest(object):
         """
         all_responses = []
 
-        import pdb
-        pdb.set_trace()
-        retry = 0
-        responses = None
-        while retry <= self._max_retry and not responses:
+        for retry in range(self._max_retry):
             try:
-                retry += 1
                 responses = grequests.map(requests)
-                # test each response 
-                for response in responses:
-                  # for some odd conditions, requests will neither return an object nor raise an error
-                  if not response:
-                    #raise an error so we trigger a retry
-                    responses = None
-                    raise ConnectionError('Batch of requests had an empty response')
+                valid_responses = [response for response in responses if response]
+                if len(valid_responses) != len(requests):
+                    continue
+                else:
+                    break
             except:
                 pass
 
-        if not responses:
+        if retry == self._max_retry:
             raise ConnectionError('Unable to complete batch of requests within max_retry retries')
 
         for request, response in zip(requests, responses):
