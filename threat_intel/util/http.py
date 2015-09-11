@@ -13,6 +13,7 @@ from collections import namedtuple
 import grequests
 from requests import Session
 from requests.adapters import HTTPAdapter
+from requests import ConnectionError
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -111,7 +112,7 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0):
+    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0, max_retry=10):
         """Create the MultiRequest.
 
         Args:
@@ -123,6 +124,7 @@ class MultiRequest(object):
         self._default_headers = default_headers
         self._max_requests = max_requests
         self._req_timeout = req_timeout
+        self._max_retry = max_retry
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()
         self._session.mount('https://', SSLAdapter())
@@ -274,9 +276,24 @@ class MultiRequest(object):
         """
         all_responses = []
 
-        for request, response in zip(requests, grequests.map(requests)):
+        for retry in range(self._max_retry):
+            try:
+                responses = grequests.map(requests)
+                valid_responses = [response for response in responses if response]
+                if len(valid_responses) != len(requests):
+                    continue
+                else:
+                    break
+            except:
+                pass
+
+        if retry == self._max_retry:
+            raise ConnectionError('Unable to complete batch of requests within max_retry retries')
+
+        for request, response in zip(requests, responses):
             if not response:
-                response = MultiRequest._FakeResponse(request, '<UNKNOWN>')
+                # should have caught this earlier, but if not ...
+                raise ConnectionError('Request to {0} had an empty response'.format(request.url))
 
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
