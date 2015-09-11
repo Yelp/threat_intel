@@ -47,12 +47,12 @@ class InvestigateApi(object):
 
     BASE_URL = u'https://investigate.api.opendns.com/'
 
-    def __init__(self, api_key, cache_file_name=None):
+    def __init__(self, api_key, cache_file_name=None, update_cache=True):
         auth_header = {'Authorization': 'Bearer {0}'.format(api_key)}
         self._requests = MultiRequest(default_headers=auth_header, max_requests=12, rate_limit=30)
 
         # Create an ApiCache if instructed to
-        self._cache = ApiCache(cache_file_name) if cache_file_name else None
+        self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
 
     @classmethod
     def _to_url(cls, url_path):
