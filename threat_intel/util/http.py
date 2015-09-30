@@ -292,8 +292,8 @@ class MultiRequest(object):
 
         for request, response in zip(requests, responses):
             if not response:
-                # returning a fake response for empty requests so test_no_domains will pass
-                response = MultiRequest._FakeResponse(request, '<UNKNOWN>')
+            # should have caught this earlier, but if not ...
+            raise ConnectionError('Request to {0} had an empty response'.format(request.url))
 
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
