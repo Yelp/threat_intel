@@ -283,19 +283,19 @@ class MultiRequest(object):
                 valid_responses = [response for response in responses if response]
                 failed_auth_responses = [response for response in responses if response.status_code == 403]
 
-                if len(failed_auth_responses) > 0:
+                #if len(failed_auth_responses) > 0:
+                if failed_auth_responses:
                     auth_error = True
-                    break
+                    raise ConnectionError('Credentials not authorized to access URL')
 
                 if len(valid_responses) != len(requests):
                     continue
                 else:
                     break
+            except ConnectionError:
+                raise
             except:
                 pass
-
-        if auth_error:
-            raise ConnectionError('Credentials not authorized to access URL')
 
         if retry == self._max_retry:
             raise ConnectionError('Unable to complete batch of requests within max_retry retries')
