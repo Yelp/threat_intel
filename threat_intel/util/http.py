@@ -283,7 +283,6 @@ class MultiRequest(object):
                 valid_responses = [response for response in responses if response]
                 failed_auth_responses = [response for response in responses if response.status_code == 403]
 
-                #if len(failed_auth_responses) > 0:
                 if failed_auth_responses:
                     auth_error = True
                     raise ConnectionError('Credentials not authorized to access URL')
