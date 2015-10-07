@@ -275,7 +275,6 @@ class MultiRequest(object):
             A list of dicts if to_json, a list of grequest.response otherwise
         """
         all_responses = []
-        auth_error = False
 
         for retry in range(self._max_retry):
             try:
@@ -284,7 +283,6 @@ class MultiRequest(object):
                 failed_auth_responses = [response for response in responses if response.status_code == 403]
 
                 if failed_auth_responses:
-                    auth_error = True
                     raise ConnectionError('Credentials not authorized to access URL')
 
                 if len(valid_responses) != len(requests):
