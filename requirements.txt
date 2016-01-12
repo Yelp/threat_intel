@@ -1,4 +1,4 @@
 grequests==0.2.0
 # Make sure to install the optional security components for requests
-requests[security]==2.7.0
-simplejson==3.6.5
+requests[security]==2.8.1
+simplejson==3.7.3
