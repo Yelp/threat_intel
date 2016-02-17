@@ -11,9 +11,9 @@ import time
 from collections import namedtuple
 
 import grequests
+from requests import ConnectionError
 from requests import Session
 from requests.adapters import HTTPAdapter
-from requests import ConnectionError
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -239,31 +239,6 @@ class MultiRequest(object):
             data = data * max_count
 
         return zip(urls, query_params, data)
-
-    class _FakeResponse(object):
-
-        """_FakeResponse looks enough like a response from grequests to handle when grequests has no response.
-
-        Attributes:
-            request - The request object
-            status_code - The HTTP response status code
-        """
-
-        def __init__(self, request, status_code):
-            self._request = request
-            self._status_code = status_code
-
-        @property
-        def request(self):
-            return self._request
-
-        @property
-        def status_code(self):
-            return self._status_code
-
-        def json(self):
-            """Convert the response body to a dict."""
-            return {}
 
     def _wait_for_response(self, requests, to_json):
         """Issue a batch of requests and wait for the responses.
