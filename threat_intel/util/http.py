@@ -240,6 +240,17 @@ class MultiRequest(object):
 
         return zip(urls, query_params, data)
 
+    def _handle_exception(self, request, exception):
+        """Handles grequests exception (timeout, etc.).
+
+        Args:
+            request - A request that caused the exception
+            exception - An exception caused by the request
+        Raises:
+            InvalidRequestError - custom exception encapsulating grequests exception
+        """
+        raise InvalidRequestError('Request to {0} caused an exception: {1}'.format(request.url, exception))
+
     def _wait_for_response(self, requests, to_json):
         """Issue a batch of requests and wait for the responses.
 
@@ -253,7 +264,7 @@ class MultiRequest(object):
 
         for retry in range(self._max_retry):
             try:
-                responses = grequests.map(requests)
+                responses = grequests.map(requests, self._handle_exception)
                 valid_responses = [response for response in responses if response]
 
                 if any(response is not None and response.status_code == 403 for response in responses):
