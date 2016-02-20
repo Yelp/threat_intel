@@ -255,16 +255,15 @@ class MultiRequest(object):
             try:
                 responses = grequests.map(requests)
                 valid_responses = [response for response in responses if response]
-                failed_auth_responses = [response for response in responses if response.status_code == 403]
 
-                if failed_auth_responses:
-                    raise ConnectionError('Credentials not authorized to access URL')
+                if any(response is not None and response.status_code == 403 for response in responses):
+                    raise InvalidRequestError('Access forbidden')
 
                 if len(valid_responses) != len(requests):
                     continue
                 else:
                     break
-            except ConnectionError:
+            except InvalidRequestError:
                 raise
             except:
                 pass
