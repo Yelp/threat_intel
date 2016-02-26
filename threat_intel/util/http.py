@@ -6,12 +6,12 @@
 # MultiRequest wraps grequests and issues multiple requests at once with an easy to use interface.
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
+import logging
 import ssl
 import time
 from collections import namedtuple
 
 import grequests
-from requests import ConnectionError
 from requests import Session
 from requests.adapters import HTTPAdapter
 
@@ -264,29 +264,30 @@ class MultiRequest(object):
 
         for retry in range(self._max_retry):
             try:
+                logging.debug('Try #{0}'.format(retry + 1))
+                # TODO retry only for the responses that have not finished successfully yet
                 responses = grequests.map(requests, self._handle_exception)
                 valid_responses = [response for response in responses if response]
 
                 if any(response is not None and response.status_code == 403 for response in responses):
                     raise InvalidRequestError('Access forbidden')
 
-                if len(valid_responses) != len(requests):
-                    continue
-                else:
+                if len(valid_responses) == len(requests):
                     break
+
+                logging.warning('Try #{0}. Expected {1} valid response(s) but only got {2}.'.format(
+                    retry + 1, len(requests), len(valid_responses)))
+
+                if retry + 1 == self._max_retry:
+                    raise InvalidRequestError('Unable to complete batch of requests within {0} retries'.format(self._max_retry))
             except InvalidRequestError:
                 raise
-            except:
+            except Exception as e:
+                # log the exception for the informative purposes and pass to the next iteration
+                logging.exception('Try #{0}. Exception occured: {1}. Retrying.'.format(retry + 1, e))
                 pass
 
-        if retry == self._max_retry:
-            raise ConnectionError('Unable to complete batch of requests within max_retry retries')
-
         for request, response in zip(requests, responses):
-            if not response:
-                # should have caught this earlier, but if not ...
-                raise ConnectionError('Request to {0} had an empty response'.format(request.url))
-
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
 
