@@ -6,6 +6,7 @@
 # MultiRequest wraps grequests and issues multiple requests at once with an easy to use interface.
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
+import logging
 import ssl
 import time
 from collections import namedtuple
@@ -13,7 +14,6 @@ from collections import namedtuple
 import grequests
 from requests import Session
 from requests.adapters import HTTPAdapter
-from requests import ConnectionError
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -240,30 +240,16 @@ class MultiRequest(object):
 
         return zip(urls, query_params, data)
 
-    class _FakeResponse(object):
+    def _handle_exception(self, request, exception):
+        """Handles grequests exception (timeout, etc.).
 
-        """_FakeResponse looks enough like a response from grequests to handle when grequests has no response.
-
-        Attributes:
-            request - The request object
-            status_code - The HTTP response status code
+        Args:
+            request - A request that caused the exception
+            exception - An exception caused by the request
+        Raises:
+            InvalidRequestError - custom exception encapsulating grequests exception
         """
-
-        def __init__(self, request, status_code):
-            self._request = request
-            self._status_code = status_code
-
-        @property
-        def request(self):
-            return self._request
-
-        @property
-        def status_code(self):
-            return self._status_code
-
-        def json(self):
-            """Convert the response body to a dict."""
-            return {}
+        raise InvalidRequestError('Request to {0} caused an exception: {1}'.format(request.url, exception))
 
     def _wait_for_response(self, requests, to_json):
         """Issue a batch of requests and wait for the responses.
@@ -278,35 +264,38 @@ class MultiRequest(object):
 
         for retry in range(self._max_retry):
             try:
-                responses = grequests.map(requests)
+                logging.debug('Try #{0}'.format(retry + 1))
+                # TODO retry only for the responses that have not finished successfully yet
+                responses = grequests.map(requests, self._handle_exception)
                 valid_responses = [response for response in responses if response]
-                failed_auth_responses = [response for response in responses if response.status_code == 403]
 
-                if failed_auth_responses:
-                    raise ConnectionError('Credentials not authorized to access URL')
+                if any(response is not None and response.status_code == 403 for response in responses):
+                    raise InvalidRequestError('Access forbidden')
 
-                if len(valid_responses) != len(requests):
-                    continue
-                else:
+                if len(valid_responses) == len(requests):
                     break
-            except ConnectionError:
+
+                logging.warning('Try #{0}. Expected {1} valid response(s) but only got {2}.'.format(
+                    retry + 1, len(requests), len(valid_responses)))
+
+                if retry + 1 == self._max_retry:
+                    raise InvalidRequestError('Unable to complete batch of requests within {0} retries'.format(self._max_retry))
+            except InvalidRequestError:
                 raise
-            except:
+            except Exception as e:
+                # log the exception for the informative purposes and pass to the next iteration
+                logging.exception('Try #{0}. Exception occured: {1}. Retrying.'.format(retry + 1, e))
                 pass
 
-        if retry == self._max_retry:
-            raise ConnectionError('Unable to complete batch of requests within max_retry retries')
-
         for request, response in zip(requests, responses):
-            if not response:
-                # should have caught this earlier, but if not ...
-                raise ConnectionError('Request to {0} had an empty response'.format(request.url))
-
             if 200 != response.status_code:
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
 
             if to_json:
-                all_responses.append(response.json())
+                try:
+                    all_responses.append(response.json())
+                except ValueError:
+                    raise InvalidRequestError('Expected JSON response from: {0}'.format(response.request.url))
             else:
                 all_responses.append(response)
 
