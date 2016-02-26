@@ -46,3 +46,24 @@ class MultiRequestTest(T.TestCase):
             MultiRequest().multi_get('example.com', query_params)
 
         T.assert_equal(10, patched_grequests_map.call_count)
+
+    def test_multi_get_expected_json_response(self):
+        """Tests the exception handling in the cases when the response was supposed to return JSON but did not."""
+        # mock responses
+        responses = [MagicMock()] * 5
+        for response in responses:
+            response.status_code = 200
+
+        # mock the exception raised in case response cannot be converted to JSON
+        # based on: http://docs.python-requests.org/en/master/user/quickstart/#json-response-content
+        responses[3].json.side_effect = ValueError('No JSON object could be decoded')
+        responses[3].request.url = 'example.com/movie'
+
+        query_params = [{'Andrew Henry': 'Domhnall Gleeson'}] * 5
+
+        says_expected_json_response = lambda e: T.assert_equal(str(e), 'Expected JSON response from: example.com/movie')
+        with nested(
+            patch('grequests.map', return_value=responses),
+            T.assert_raises_such_that(InvalidRequestError, says_expected_json_response)
+        ):
+            MultiRequest().multi_get('example.com', query_params)

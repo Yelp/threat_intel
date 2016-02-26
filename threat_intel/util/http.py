@@ -292,7 +292,10 @@ class MultiRequest(object):
                 write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
 
             if to_json:
-                all_responses.append(response.json())
+                try:
+                    all_responses.append(response.json())
+                except ValueError:
+                    raise InvalidRequestError('Expected JSON response from: {0}'.format(response.request.url))
             else:
                 all_responses.append(response)
 
