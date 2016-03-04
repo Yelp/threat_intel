@@ -10,6 +10,7 @@ import logging
 import ssl
 import time
 from collections import namedtuple
+from collections import OrderedDict
 
 import grequests
 from requests import Session
@@ -251,35 +252,43 @@ class MultiRequest(object):
         """
         raise InvalidRequestError('Request to {0} caused an exception: {1}'.format(request.url, exception))
 
-    def _wait_for_response(self, requests, to_json):
-        """Issue a batch of requests and wait for the responses.
+    def _wait_for_response(self, requests):
+        """Issues a batch of requests and waits for the responses.
+        If some of the requests fail it will retry the failed ones up to `_max_retry` times.
 
         Args:
             requests - A list of requests
-            to_json - A boolean, should the responses be returned as JSON blobs
         Returns:
-            A list of dicts if to_json, a list of grequest.response otherwise
+            A list of `requests.models.Response` objects
+        Raises:
+            InvalidRequestError - if any of the requests returns "403 Forbidden" response
         """
-        all_responses = []
+        responses_for_requests = OrderedDict.fromkeys(requests)
 
         for retry in range(self._max_retry):
             try:
                 logging.debug('Try #{0}'.format(retry + 1))
-                # TODO retry only for the responses that have not finished successfully yet
                 responses = grequests.map(requests, self._handle_exception)
-                valid_responses = [response for response in responses if response]
 
                 if any(response is not None and response.status_code == 403 for response in responses):
                     raise InvalidRequestError('Access forbidden')
 
-                if len(valid_responses) == len(requests):
+                failed_requests = []
+
+                for request, response in zip(requests, responses):
+                    if response:
+                        responses_for_requests[request] = response
+                    else:
+                        failed_requests.append(request)
+
+                if not failed_requests:
                     break
 
-                logging.warning('Try #{0}. Expected {1} valid response(s) but only got {2}.'.format(
-                    retry + 1, len(requests), len(valid_responses)))
+                logging.warning('Try #{0}. Expected {1} successful response(s) but only got {2}.'.format(
+                    retry + 1, len(requests), len(requests) - len(failed_requests)))
 
-                if retry + 1 == self._max_retry:
-                    raise InvalidRequestError('Unable to complete batch of requests within {0} retries'.format(self._max_retry))
+                # retry only for the failed requests
+                requests = failed_requests
             except InvalidRequestError:
                 raise
             except Exception as e:
@@ -287,19 +296,35 @@ class MultiRequest(object):
                 logging.exception('Try #{0}. Exception occured: {1}. Retrying.'.format(retry + 1, e))
                 pass
 
-        for request, response in zip(requests, responses):
-            if 200 != response.status_code:
-                write_error_message('url[{0}] status_code[{1}]'.format(response.request.url, response.status_code))
+        if failed_requests:
+            logging.warning('Still {0} failed request(s) after {1} retries:'.format(len(failed_requests), self._max_retry))
+            for failed_request in failed_requests:
+                failed_response = failed_request.response
+                if failed_response is not None:
+                    # in case response text does contain some non-ascii characters
+                    failed_response_text = failed_response.text.encode('ascii', 'xmlcharrefreplace')
+                    logging.warning('Request to {0} failed with status code {1}. Response text: {2}'.format(
+                        failed_request.url, failed_response.status_code, failed_response_text))
+                else:
+                    logging.warning('Request to {0} failed with None response.'.format(failed_request.url))
 
-            if to_json:
-                try:
-                    all_responses.append(response.json())
-                except ValueError:
-                    raise InvalidRequestError('Expected JSON response from: {0}'.format(response.request.url))
-            else:
-                all_responses.append(response)
+        return responses_for_requests.values()
 
-        return all_responses
+    def _convert_to_json(self, response):
+        """Converts response to JSON.
+        If the response cannot be converted to JSON then `None` is returned.
+
+        Args:
+            response - An object of type `requests.models.Response`
+        Returns:
+            Response in JSON format if the response can be converted to JSON. `None` otherwise.
+        """
+        try:
+            return response.json()
+        except ValueError:
+            logging.warning('Expected response in JSON format from {0} but the actual response text is: {1}'.format(
+                response.request.url, response.text))
+        return None
 
     def _multi_request(self, verb, urls, query_params, data, to_json=True, send_as_file=False):
         """Issues multiple batches of simultaneous HTTP requests and waits for responses.
@@ -314,7 +339,7 @@ class MultiRequest(object):
             If multiple requests are made - a list of dicts if to_json, a list of grequest.response otherwise
             If a single request is made, the return is not a list
         Raises:
-            InvalidRequestError - if no URL is supplied
+            InvalidRequestError - if no URL is supplied or if any of the requests returns 403 Access Forbidden response
         """
         if not urls:
             raise InvalidRequestError('No URL supplied')
@@ -333,7 +358,13 @@ class MultiRequest(object):
             for url, query_param, datum in param_batch:
                 requests.append(self._create_request(verb, url, query_params=query_param, data=datum, send_as_file=send_as_file))
 
-            all_responses.extend(self._wait_for_response(requests, to_json))
+            responses = self._wait_for_response(requests)
+
+            for response in responses:
+                if response:
+                    all_responses.append(self._convert_to_json(response) if to_json else response)
+                else:
+                    all_responses.append(None)
 
         return all_responses
 
