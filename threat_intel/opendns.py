@@ -117,11 +117,10 @@ class InvestigateApi(object):
         if len(url_params):
             urls = self._to_urls(fmt_url_path, url_params)
             responses = self._requests.multi_get(urls)
-            responses = dict(zip(url_params, responses))
-            for url_param in responses.keys():
+            for url_param, response in zip(url_params, responses):
                 if self._cache:
-                    self._cache.cache_value(cache_api_name, url_param, responses[url_param])
-                all_responses[url_param] = responses[url_param]
+                    self._cache.cache_value(cache_api_name, url_param, response)
+                all_responses[url_param] = response
 
         return all_responses
 
