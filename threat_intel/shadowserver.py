@@ -52,7 +52,7 @@ class ShadowServerApi(object):
 
         responses = self._requests.multi_post(self.BINTEST_URL, data=hash_chunks, to_json=False, send_as_file=True)
         for response in responses:
-            if 200 == response.status_code:
+            if response is not None and 200 == response.status_code:
                 response_lines = response.text.split('\n')
                 for line in response_lines:
                     # Set an initial val.
