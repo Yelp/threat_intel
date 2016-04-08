@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 import testify as T
+from mock import ANY
 from mock import patch
 
 from threat_intel.opendns import InvestigateApi
@@ -13,6 +14,32 @@ class InvestigateApiTest(T.TestCase):
     @T.setup
     def setup_opendns(self):
         self.opendns = InvestigateApi('test_key')
+
+    def test_categorization(self):
+        domains = ['yellowstone.org', 'zion.org', 'sequoia.org', 'greatsanddunes.org']
+
+        expected_url = u'https://investigate.api.opendns.com/domains/categorization/?showLabels'
+        expected_data = ['["yellowstone.org", "zion.org", "sequoia.org", "greatsanddunes.org"]']
+
+        with patch.object(self.opendns, '_requests') as request_mock:
+            self.opendns.categorization(domains)
+
+        request_mock.multi_post.assert_called_with(expected_url, data=expected_data)
+
+    def test_categorization_domains_limit(self):
+        self.opendns.MAX_DOMAINS_IN_POST = 2
+        domains = [
+            'northyorkmoors.org.uk', 'peakdistrict.org.uk',
+            'cairngorms.org.uk', 'pembrokeshirecoast.org.uk',
+            'northumberland.org.uk']
+        expected_data = [
+            '["northyorkmoors.org.uk", "peakdistrict.org.uk"]',
+            '["cairngorms.org.uk", "pembrokeshirecoast.org.uk"]',
+            '["northumberland.org.uk"]']
+        with patch.object(self.opendns, '_requests') as request_mock:
+            self.opendns.categorization(domains)
+
+        request_mock.multi_post.assert_called_with(ANY, data=expected_data)
 
     def _test_api_call_get(self, call, endpoint, request, expected_query_params, api_response, expected_result):
         """

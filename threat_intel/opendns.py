@@ -23,15 +23,16 @@ def _cached_by_domain(api_name):
             domains = list(set(domains) - set(all_responses))
 
             if domains:
-                response = func(self, domains)
+                responses = func(self, domains)
 
-                # TODO better exception
-                if not response:
-                    raise Exception('dang')
+                for response in responses:
+                    # TODO better exception
+                    if not response:
+                        raise Exception('dang')
 
-                for domain in response:
-                    self._cache.cache_value(api_name, domain, response[domain])
-                    all_responses[domain] = response[domain]
+                    for domain in response:
+                        self._cache.cache_value(api_name, domain, response[domain])
+                        all_responses[domain] = response[domain]
 
             return all_responses
         return decorated
@@ -46,6 +47,9 @@ class InvestigateApi(object):
     """
 
     BASE_URL = u'https://investigate.api.opendns.com/'
+
+    # TODO: consider moving this to a config file
+    MAX_DOMAINS_IN_POST = 1000
 
     def __init__(self, api_key, cache_file_name=None, update_cache=True):
         auth_header = {'Authorization': 'Bearer {0}'.format(api_key)}
@@ -77,6 +81,10 @@ class InvestigateApi(object):
         return [cls._to_url(url_path) for url_path in url_paths]
 
     @MultiRequest.error_handling
+    def _multi_post(self, url_path, domains):
+        data = [simplejson.dumps(domains[pos:pos + self.MAX_DOMAINS_IN_POST]) for pos in xrange(0, len(domains), self.MAX_DOMAINS_IN_POST)]
+        return self._requests.multi_post(self._to_url(url_path), data=data)
+
     @_cached_by_domain(api_name='opendns-categorization')
     def categorization(self, domains):
         """Calls categorization end point and adds an 'is_suspicious' key to each response.
@@ -87,15 +95,13 @@ class InvestigateApi(object):
             A dict of {domain: categorization_result}
         """
         url_path = u'domains/categorization/?showLabels'
-        response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
-        return response[0]
+        return self._multi_post(url_path, domains)
 
     @MultiRequest.error_handling
     @_cached_by_domain(api_name='opendns-domain_score')
     def domain_score(self, domains):
         url_path = 'domains/score/'
-        response = self._requests.multi_post(self._to_url(url_path), data=simplejson.dumps(domains))
-        return response[0]
+        return self._multi_post(url_path, domains)
 
     @MultiRequest.error_handling
     def _multi_get(self, cache_api_name, fmt_url_path, url_params):
