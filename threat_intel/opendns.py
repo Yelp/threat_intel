@@ -97,7 +97,6 @@ class InvestigateApi(object):
         url_path = u'domains/categorization/?showLabels'
         return self._multi_post(url_path, domains)
 
-    @MultiRequest.error_handling
     @_cached_by_domain(api_name='opendns-domain_score')
     def domain_score(self, domains):
         url_path = 'domains/score/'
