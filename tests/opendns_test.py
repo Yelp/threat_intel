@@ -5,6 +5,7 @@ from mock import ANY
 from mock import patch
 
 from threat_intel.opendns import InvestigateApi
+from threat_intel.util.http import MultiRequest
 
 
 class InvestigateApiTest(T.TestCase):
@@ -15,16 +16,45 @@ class InvestigateApiTest(T.TestCase):
     def setup_opendns(self):
         self.opendns = InvestigateApi('test_key')
 
+    def _patch_and_assert_categorization(self, all_responses, expected_responses, domains, expected_url, expected_data):
+        with patch.object(MultiRequest, 'multi_post', autospec=True, return_value=all_responses) as patched_multi_post:
+            actual_responses = self.opendns.categorization(domains)
+
+        patched_multi_post.assert_called_with(ANY, expected_url, data=expected_data)
+        assert expected_responses == actual_responses
+
     def test_categorization(self):
         domains = ['yellowstone.org', 'zion.org', 'sequoia.org', 'greatsanddunes.org']
+        all_responses = [
+            {
+                u'yellowstone.org': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+                u'zion.org': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+                u'sequoia.org': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+                u'greatsanddunes.org': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                }
+            }
+        ]
 
         expected_url = u'https://investigate.api.opendns.com/domains/categorization/?showLabels'
         expected_data = ['["yellowstone.org", "zion.org", "sequoia.org", "greatsanddunes.org"]']
+        expected_responses = all_responses[0]
 
-        with patch.object(self.opendns, '_requests') as request_mock:
-            self.opendns.categorization(domains)
-
-        request_mock.multi_post.assert_called_with(expected_url, data=expected_data)
+        self._patch_and_assert_categorization(all_responses, expected_responses, domains, expected_url, expected_data)
 
     def test_categorization_domains_limit(self):
         self.opendns.MAX_DOMAINS_IN_POST = 2
@@ -32,14 +62,73 @@ class InvestigateApiTest(T.TestCase):
             'northyorkmoors.org.uk', 'peakdistrict.org.uk',
             'cairngorms.org.uk', 'pembrokeshirecoast.org.uk',
             'northumberland.org.uk']
+        all_responses = [
+            {
+                u'northyorkmoors.org.uk': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+                u'peakdistrict.org.uk': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+            },
+            {
+                u'cairngorms.org.uk': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+                u'pembrokeshirecoast.org.uk': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                },
+            },
+            {
+                u'northumberland.org.uk': {
+                    u'content_categories': [u'National Parks'],
+                    u'security_categories': [],
+                    u'status': 1
+                }
+            }
+        ]
+
         expected_data = [
             '["northyorkmoors.org.uk", "peakdistrict.org.uk"]',
             '["cairngorms.org.uk", "pembrokeshirecoast.org.uk"]',
             '["northumberland.org.uk"]']
-        with patch.object(self.opendns, '_requests') as request_mock:
-            self.opendns.categorization(domains)
+        expected_responses = {
+            u'northyorkmoors.org.uk': {
+                u'content_categories': [u'National Parks'],
+                u'security_categories': [],
+                u'status': 1
+            },
+            u'peakdistrict.org.uk': {
+                u'content_categories': [u'National Parks'],
+                u'security_categories': [],
+                u'status': 1
+            },
+            u'cairngorms.org.uk': {
+                u'content_categories': [u'National Parks'],
+                u'security_categories': [],
+                u'status': 1
+            },
+            u'pembrokeshirecoast.org.uk': {
+                u'content_categories': [u'National Parks'],
+                u'security_categories': [],
+                u'status': 1
+            },
+            u'northumberland.org.uk': {
+                u'content_categories': [u'National Parks'],
+                u'security_categories': [],
+                u'status': 1
+            }
+        }
 
-        request_mock.multi_post.assert_called_with(ANY, data=expected_data)
+        self._patch_and_assert_categorization(all_responses, expected_responses, domains, ANY, expected_data)
 
     def _test_api_call_get(self, call, endpoint, request, expected_query_params, api_response, expected_result):
         """

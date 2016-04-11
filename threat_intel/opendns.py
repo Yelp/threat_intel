@@ -23,16 +23,15 @@ def _cached_by_domain(api_name):
             domains = list(set(domains) - set(all_responses))
 
             if domains:
-                responses = func(self, domains)
+                response = func(self, domains)
 
-                for response in responses:
-                    # TODO better exception
-                    if not response:
-                        raise Exception('dang')
+                # TODO better exception
+                if not response:
+                    raise Exception('dang')
 
-                    for domain in response:
-                        self._cache.cache_value(api_name, domain, response[domain])
-                        all_responses[domain] = response[domain]
+                for domain in response:
+                    self._cache.cache_value(api_name, domain, response[domain])
+                    all_responses[domain] = response[domain]
 
             return all_responses
         return decorated
@@ -83,7 +82,12 @@ class InvestigateApi(object):
     @MultiRequest.error_handling
     def _multi_post(self, url_path, domains):
         data = [simplejson.dumps(domains[pos:pos + self.MAX_DOMAINS_IN_POST]) for pos in xrange(0, len(domains), self.MAX_DOMAINS_IN_POST)]
-        return self._requests.multi_post(self._to_url(url_path), data=data)
+        # multi_post() returns list of dictionaries, so they need to be merged into one dict
+        all_responses = self._requests.multi_post(self._to_url(url_path), data=data)
+        responses = {}
+        for r in all_responses:
+            responses.update(r)
+        return responses
 
     @_cached_by_domain(api_name='opendns-categorization')
     def categorization(self, domains):
