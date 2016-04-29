@@ -11,7 +11,13 @@ from threat_intel.util.http import MultiRequest
 
 
 def _cached_by_domain(api_name):
-    """A caching wrapper for functions that take a list of domains as parameters."""
+    """A caching wrapper for functions that take a list of domains as
+    parameters.
+
+    Raises:
+        ResponseError - if the response received from the endpoint is
+        not valid.
+    """
 
     def wrapped(func):
         def decorated(self, domains):
@@ -25,9 +31,8 @@ def _cached_by_domain(api_name):
             if domains:
                 response = func(self, domains)
 
-                # TODO better exception
                 if not response:
-                    raise Exception('dang')
+                    raise ResponseError()
 
                 for domain in response:
                     self._cache.cache_value(api_name, domain, response[domain])
@@ -265,3 +270,8 @@ class InvestigateApi(object):
         api_name = 'opendns-latest_malicious'
         fmt_url_path = u'ips/{0}/latest_domains'
         return self._multi_get(api_name, fmt_url_path, ips)
+
+
+class ResponseError(Exception):
+
+    """Raised when the response received from the endpoint is not valid."""
