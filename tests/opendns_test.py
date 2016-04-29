@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 #
+from contextlib import nested
+
 import testify as T
 from mock import ANY
+from mock import mock_open
 from mock import patch
 
 from threat_intel.opendns import InvestigateApi
+from threat_intel.opendns import ResponseError
+from threat_intel.util.api_cache import ApiCache
 from threat_intel.util.http import MultiRequest
 
 
@@ -129,6 +134,29 @@ class InvestigateApiTest(T.TestCase):
         }
 
         self._patch_and_assert_categorization(all_responses, expected_responses, domains, ANY, expected_data)
+
+    def test_categorization_response_error(self):
+        """Tests whether the ResponseError is raised when the response
+        returned from the actual API call is empty.
+        """
+        domains = ['yosemite.gov', 'joushuatree.gov', 'deathvalley.gov']
+        # empty responses should raise an error
+        all_responses = [{}]
+
+        # mock cache file
+        mock_read = mock_open(read_data="{}")
+
+        with nested(
+            patch('__builtin__.open', mock_read, create=True),
+            patch.object(
+                ApiCache, 'bulk_lookup', autospec=True, return_value={}),
+            patch.object(
+                MultiRequest, 'multi_post', autospec=True,
+                return_value=all_responses),
+        ) as (__, __, patched_multi_post):
+            i = InvestigateApi('hocus pocus', 'cache.json')
+            with T.assert_raises(ResponseError):
+                i.categorization(domains)
 
     def _test_api_call_get(self, call, endpoint, request, expected_query_params, api_response, expected_result):
         """
