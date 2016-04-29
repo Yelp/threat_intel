@@ -32,7 +32,7 @@ def _cached_by_domain(api_name):
                 response = func(self, domains)
 
                 if not response:
-                    raise ResponseError()
+                    raise ResponseError("No response for uncached domains")
 
                 for domain in response:
                     self._cache.cache_value(api_name, domain, response[domain])
