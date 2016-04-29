@@ -2,6 +2,8 @@
 #
 # InvestigateApi makes calls to the OpenDNS Investigate API.
 #
+from warnings import warn
+
 import simplejson
 
 from threat_intel.util.api_cache import ApiCache
@@ -108,6 +110,13 @@ class InvestigateApi(object):
 
     @_cached_by_domain(api_name='opendns-domain_score')
     def domain_score(self, domains):
+        """Calls domain scores endpoint.
+
+        This method is deprecated since OpenDNS Investigate API
+        endpoint is also deprecated.
+        """
+        warn('OpenDNS Domain Scores endpoint is deprecated. Use '
+             'InvestigateApi.categorization() instead', DeprecationWarning)
         url_path = 'domains/score/'
         return self._multi_post(url_path, domains)
 
