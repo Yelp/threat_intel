@@ -3,6 +3,6 @@
 coverage==3.7.1
 mock==1.0.1
 pre-commit==0.7.6
-pyflakes==0.9.1
+pyflakes==0.9.2
 testify==0.7.2
-tox==2.0.2
+tox==2.3.1
