@@ -9,7 +9,7 @@ from threat_intel.util.http import MultiRequest
 class VirusTotalApi(object):
     BASE_DOMAIN = u'https://www.virustotal.com/vtapi/v2/'
 
-    def __init__(self, api_key, resources_per_req=25, cache_file_name=None, update_cache=True):
+    def __init__(self, api_key, resources_per_req=25, cache_file_name=None, update_cache=True, req_timeout=None):
         """Establishes basic HTTP params and loads a cache.
 
         Args:
@@ -19,10 +19,12 @@ class VirusTotalApi(object):
             cache_file_name: String file name of cache.
             update_cache: Determines whether cache should be written out back to the disk when closing it.
                           Default is `True`.
+            req_timeout: Maximum number of seconds to wait without reading a response byte before deciding an error has occurred.
+                         Default is None.
         """
         self._api_key = api_key
         self._resources_per_req = resources_per_req
-        self._requests = MultiRequest()
+        self._requests = MultiRequest(req_timeout=req_timeout)
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None

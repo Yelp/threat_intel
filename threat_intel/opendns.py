@@ -57,9 +57,9 @@ class InvestigateApi(object):
     # TODO: consider moving this to a config file
     MAX_DOMAINS_IN_POST = 1000
 
-    def __init__(self, api_key, cache_file_name=None, update_cache=True):
+    def __init__(self, api_key, cache_file_name=None, update_cache=True, req_timeout=None):
         auth_header = {'Authorization': 'Bearer {0}'.format(api_key)}
-        self._requests = MultiRequest(default_headers=auth_header, max_requests=12, rate_limit=30)
+        self._requests = MultiRequest(default_headers=auth_header, max_requests=12, rate_limit=30, req_timeout=req_timeout)
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
