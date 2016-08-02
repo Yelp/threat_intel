@@ -113,7 +113,7 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=25.0, max_retry=10):
+    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=None, max_retry=10):
         """Create the MultiRequest.
 
         Args:
@@ -124,7 +124,7 @@ class MultiRequest(object):
         """
         self._default_headers = default_headers
         self._max_requests = max_requests
-        self._req_timeout = req_timeout
+        self._req_timeout = req_timeout or 25.0
         self._max_retry = max_retry
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()

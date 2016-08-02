@@ -11,18 +11,20 @@ from threat_intel.util.http import MultiRequest
 class ShadowServerApi(object):
     BINTEST_URL = u'http://bin-test.shadowserver.org/api'
 
-    def __init__(self, cache_file_name=None, update_cache=True):
+    def __init__(self, cache_file_name=None, update_cache=True, req_timeout=90.0):
         """Establishes basic HTTP params and loads a cache.
 
         Args:
             cache_file_name: String file name of cache.
             update_cache: Determines whether cache should be written out back to the disk when closing it.
                           Default is `True`.
+            req_timeout: Maximum number of seconds to wait without reading a response byte before deciding an error has occurred.
+                         Default is 90.0 seconds.
         """
 
         # TODO - lookup request rate limit
         # By observation, ShadowServer can be quite slow, so give it 90 seconds before it times out.
-        self._requests = MultiRequest(max_requests=2, req_timeout=90.0)
+        self._requests = MultiRequest(max_requests=2, req_timeout=req_timeout)
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
