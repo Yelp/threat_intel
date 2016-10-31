@@ -1,4 +1,4 @@
-# threat_intel  [![Build Status: master](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel)
+# threat_intel [![Build Status: master](https://travis-ci.org/Yelp/threat_intel.svg?branch=master)](https://travis-ci.org/Yelp/threat_intel) [![PyPI](https://img.shields.io/pypi/v/threat_intel.svg)](https://pypi.python.org/pypi/threat_intel)
 Threat Intelligence APIs.
 
 
