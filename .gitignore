@@ -54,5 +54,5 @@ docs/_build/
 target/
 
 .coverage
-venv-threat_intel/
+virtualenv_run/
 .DS_Store
