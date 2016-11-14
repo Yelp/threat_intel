@@ -10,7 +10,7 @@ venv:
 	tox -evenv
 
 clean:
-	rm -rf build/ dist/ threat_intel.egg-info/ .tox/ venv-threat_intel/
+	rm -rf build/ dist/ threat_intel.egg-info/ .tox/ virtualenv_run/
 	find . -name '*.pyc' -delete
 	find . -name '__pycache__' -delete
 
