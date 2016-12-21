@@ -280,6 +280,19 @@ class InvestigateApi(object):
         fmt_url_path = u'ips/{0}/latest_domains'
         return self._multi_get(api_name, fmt_url_path, ips)
 
+    def sample(self, hashes):
+        """Get the information about a sample based on its hash.
+
+        Args:
+            hashes: an enumerable of strings as hashes
+        Returns:
+            An enumerable of arrays which contains the information
+            about the original samples
+        """
+        api_name = 'opendns-sample'
+        fmt_url_path = u'sample/{0}'
+        return self._multi_get(api_name, fmt_url_path, hashes)
+
 
 class ResponseError(Exception):
 
