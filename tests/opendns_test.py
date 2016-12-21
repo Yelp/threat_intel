@@ -265,3 +265,11 @@ class InvestigateApiTest(T.TestCase):
                                 expected_query_params='domain',
                                 api_response={},
                                 expected_result={})
+
+    def test_sample(self):
+        self._test_api_call_get(call=self.opendns.sample,
+                                endpoint=u'sample/{0}',
+                                request=['0492d93195451e41f568f68e7704eb0812bc2b19'],
+                                expected_query_params='0492d93195451e41f568f68e7704eb0812bc2b19',
+                                api_response={},
+                                expected_result={})
