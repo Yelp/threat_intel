@@ -526,10 +526,11 @@ want to test:
     >>> ss.get_bin_test(file_hashes)
 
 """
-from exceptions import InvalidRequestError
+from __future__ import absolute_import
+from .exceptions import InvalidRequestError
 
-from opendns import InvestigateApi
-from shadowserver import ShadowServerApi
-from virustotal import VirusTotalApi
+from .opendns import InvestigateApi
+from .shadowserver import ShadowServerApi
+from .virustotal import VirusTotalApi
 
 __all__ = ['InvalidRequestError', 'InvestigateApi', 'ShadowServerApi', 'VirusTotalApi']

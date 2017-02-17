@@ -2,6 +2,7 @@
 #
 # InvestigateApi makes calls to the OpenDNS Investigate API.
 #
+from six.moves import range
 from warnings import warn
 
 import simplejson
@@ -88,7 +89,7 @@ class InvestigateApi(object):
 
     @MultiRequest.error_handling
     def _multi_post(self, url_path, domains):
-        data = [simplejson.dumps(domains[pos:pos + self.MAX_DOMAINS_IN_POST]) for pos in xrange(0, len(domains), self.MAX_DOMAINS_IN_POST)]
+        data = [simplejson.dumps(domains[pos:pos + self.MAX_DOMAINS_IN_POST]) for pos in range(0, len(domains), self.MAX_DOMAINS_IN_POST)]
         # multi_post() returns list of dictionaries, so they need to be merged into one dict
         all_responses = self._requests.multi_post(self._to_url(url_path), data=data)
         responses = {}

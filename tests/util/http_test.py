@@ -17,18 +17,18 @@ class MultiRequestTest(T.TestCase):
         responses = [Response() for _ in range(number_of_responses)]
         for response in responses:
             response.status_code = 200
-            response._content = '{"Director": "Alejandro González Iñárritu"}'
+            response._content = u'{"Director": "Alejandro González Iñárritu"}'.encode('utf-8')
         return responses
 
     def mock_forbidden_response(self, response):
         """Mocks forbidden response by changing its status code to 403 and the content to indicate the error."""
         response.status_code = 403
-        response._content = 'Forbidden'
+        response._content = u'Forbidden'.encode('utf-8')
 
     def mock_unsuccessful_response(self, response):
         """Mocks unsuccessful response by changing its status code to 500 and the content to indicate the error."""
         response.status_code = 500
-        response._content = 'Internal Server Error'
+        response._content = u'Internal Server Error'.encode('utf-8')
 
     def mock_unsuccessful_responses(self, responses):
         """Mocks unsuccessful responses by changing their status code to 500 and the content to indicate the error."""
@@ -40,7 +40,7 @@ class MultiRequestTest(T.TestCase):
         Based on http://docs.python-requests.org/en/master/user/quickstart/#json-response-content
         """
         response.json = MagicMock(side_effect=ValueError('No JSON object could be decoded'))
-        response._content = 'This is not JSON'
+        response._content = u'This is not JSON'.encode('utf-8')
         response.request = MagicMock()
         # this is necessary for the log message referencing the URL
         response.request.response = response

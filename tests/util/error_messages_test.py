@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from StringIO import StringIO
+from six import StringIO
 
 import testify as T
 from mock import patch

@@ -17,6 +17,7 @@ setup(
     install_requires=[
         "requests[security]",
         "grequests",
-        "simplejson"
+        "simplejson",
+        "six"
     ],
 )

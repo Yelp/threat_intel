@@ -7,6 +7,7 @@
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
 import logging
+from six.moves import range
 import ssl
 import time
 from collections import namedtuple
@@ -87,7 +88,7 @@ class RateLimiter(object):
         right_now = time.time()
 
         cull_from = -1
-        for index in xrange(len(self._call_times)):
+        for index in range(len(self._call_times)):
             if right_now - self._call_times[index].time >= 1.0:
                 cull_from = index
                 self._outstanding_calls -= self._call_times[index].num_calls
@@ -239,7 +240,7 @@ class MultiRequest(object):
         if data_count < max_count:
             data = data * max_count
 
-        return zip(urls, query_params, data)
+        return list(zip(urls, query_params, data))
 
     def _handle_exception(self, request, exception):
         """Handles grequests exception (timeout, etc.).
@@ -308,7 +309,7 @@ class MultiRequest(object):
                 else:
                     logging.warning('Request to {0} failed with None response.'.format(failed_request.url))
 
-        return responses_for_requests.values()
+        return list(responses_for_requests.values())
 
     def _convert_to_json(self, response):
         """Converts response to JSON.
@@ -346,7 +347,7 @@ class MultiRequest(object):
 
         # Break the params into batches of request_params
         request_params = self._zip_request_params(urls, query_params, data)
-        batch_of_params = [request_params[pos:pos + self._max_requests] for pos in xrange(0, len(request_params), self._max_requests)]
+        batch_of_params = [request_params[pos:pos + self._max_requests] for pos in range(0, len(request_params), self._max_requests)]
 
         # Iteratively issue each batch, applying the rate limiter if necessary
         all_responses = []
