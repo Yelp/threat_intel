@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+from six.moves import builtins
 import simplejson
 import testify as T
 from mock import mock_open
@@ -48,7 +49,7 @@ class ApiCacheFileIOTest(T.TestCase):
 
         file_contents = simplejson.dumps(initial_contents)
         mock_read = mock_open(read_data=file_contents)
-        with patch('__builtin__.open', mock_read, create=True):
+        with patch.object(builtins, 'open', mock_read, create=True):
             api_cache = ApiCache(self._file_name, update_cache=update_cache)
             return api_cache
 
@@ -66,7 +67,7 @@ class ApiCacheFileIOTest(T.TestCase):
                 to be written out
         """
         mock_write = mock_open()
-        with patch('__builtin__.open', mock_write, create=True) as patched_open:
+        with patch.object(builtins, 'open', mock_write, create=True) as patched_open:
             api_cache.close()
 
             if cache_written:

@@ -2,6 +2,7 @@
 #
 # ShadowServerApi makes calls to the ShadowServer APIs.
 #
+from six.moves import range
 import simplejson
 
 from threat_intel.util.api_cache import ApiCache
@@ -47,10 +48,10 @@ class ShadowServerApi(object):
             api_name = 'shadowserver-bin-test'
             all_responses = self._cache.bulk_lookup(api_name, hashes)
             hashes = [key for key in hashes if key not in all_responses.keys()]
-            all_responses = dict([(key, val) for key, val in all_responses.iteritems() if len(val) >= 2])
+            all_responses = dict([(key, val) for key, val in all_responses.items() if len(val) >= 2])
 
         HASHES_PER_REQ = 25
-        hash_chunks = ['\n'.join(hashes[pos:pos + HASHES_PER_REQ]) for pos in xrange(0, len(hashes), HASHES_PER_REQ)]
+        hash_chunks = ['\n'.join(hashes[pos:pos + HASHES_PER_REQ]) for pos in range(0, len(hashes), HASHES_PER_REQ)]
 
         responses = self._requests.multi_post(self.BINTEST_URL, data=hash_chunks, to_json=False, send_as_file=True)
         for response in responses:

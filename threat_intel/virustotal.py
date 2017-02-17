@@ -2,6 +2,8 @@
 #
 # VirusTotalApi makes calls to the VirusTotal API.
 #
+from six.moves import range
+
 from threat_intel.util.api_cache import ApiCache
 from threat_intel.util.http import MultiRequest
 
@@ -135,7 +137,7 @@ class VirusTotalApi(object):
         all_responses = {}
         api_name = 'virustotal-url-distribution'
 
-        response_chunks = self._request_reports(params.keys(), params.values(), 'url/distribution')
+        response_chunks = self._request_reports(list(params.keys()), list(params.values()), 'url/distribution')
         self._extract_response_chunks(all_responses, response_chunks, api_name)
 
         return all_responses
@@ -152,11 +154,11 @@ class VirusTotalApi(object):
         Returns:
             A dict with the VT report.
         """
-        params = params or []
+        params = params or {}
         all_responses = {}
         api_name = 'virustotal-file-distribution'
 
-        response_chunks = self._request_reports(params.keys(), params.value(), 'file/distribution')
+        response_chunks = self._request_reports(list(params.keys()), list(params.values()), 'file/distribution')
         self._extract_response_chunks(all_responses, response_chunks, api_name)
 
         return all_responses
@@ -271,7 +273,7 @@ class VirusTotalApi(object):
             A list of the concatenated resources.
         """
         return [self._prepare_resource_chunk(resources, resource_delim, pos)
-                for pos in xrange(0, len(resources), self._resources_per_req)]
+                for pos in range(0, len(resources), self._resources_per_req)]
 
     def _prepare_resource_chunk(self, resources, resource_delim, pos):
         return resource_delim.join(

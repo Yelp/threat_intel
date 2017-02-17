@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-from contextlib import nested
-
+from six.moves import builtins
 import testify as T
 from mock import ANY
 from mock import mock_open
@@ -146,14 +145,13 @@ class InvestigateApiTest(T.TestCase):
         # mock cache file
         mock_read = mock_open(read_data="{}")
 
-        with nested(
-            patch('__builtin__.open', mock_read, create=True),
-            patch.object(
-                ApiCache, 'bulk_lookup', autospec=True, return_value={}),
-            patch.object(
-                MultiRequest, 'multi_post', autospec=True,
-                return_value=all_responses),
-        ) as (__, __, patched_multi_post):
+        with patch.object(
+            builtins, 'open', mock_read, create=True
+        ), patch.object(
+            ApiCache, 'bulk_lookup', autospec=True, return_value={}
+        ), patch.object(
+            MultiRequest, 'multi_post', autospec=True, return_value=all_responses
+        ):
             i = InvestigateApi('hocus pocus', 'cache.json')
             with T.assert_raises(ResponseError):
                 i.categorization(domains)
