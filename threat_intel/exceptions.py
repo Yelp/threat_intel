@@ -8,3 +8,10 @@ class InvalidRequestError(Exception):
 
     """Raised by MultiRequest when it can't figure out how to make a request."""
     pass
+
+
+class MissingConfigError(Exception):
+
+    """An error to throw when configuration is missing"""
+    pass
+
