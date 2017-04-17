@@ -6,29 +6,29 @@ Threat Intelligence APIs.
 
 The package contains API wrappers for:
 
-* OpenDNS Investigate API
+* Umbrella Investigate API
 * VirusTotal API v2.0
 * ShadowServer API
 
 ----
 
-### OpenDNS Investigate API
+### Umbrella Investigate API
 
-[OpenDNS Investigate](https://investigate.opendns.com/) provides an API that
+[Umbrella Investigate](https://docs.umbrella.com/developer/investigate-api/) provides an API that
 allows querying for:
 
-    * Domain categorization
-    * Security information about a domain
-    * Co-occurrences for a domain
-    * Related domains for a domain
-    * Domains related to an IP
-    * Domain tagging dates for a domain
-    * DNS RR history for a domain
-    * WHOIS information
-        - WHOIS information for an email
-        - WHOIS information for a nameserver
-        - Historical WHOIS information for a domain
-    * Latest malicious domains for an IP
+* Domain categorization
+* Security information about a domain
+* Co-occurrences for a domain
+* Related domains for a domain
+* Domains related to an IP
+* Domain tagging dates for a domain
+* DNS RR history for a domain
+* WHOIS information
+    - WHOIS information for an email
+    - WHOIS information for a nameserver
+    - Historical WHOIS information for a domain
+* Latest malicious domains for an IP
 
 To use the Investigate API wrapper import `InvestigateApi` class from `threat_intel.opendns` module:
 
@@ -53,7 +53,7 @@ investigate = InvestigateApi("<INVESTIGATE-API-KEY-HERE>", cache_file_name="/tmp
 
 Calls `domains/categorization/?showLabels` Investigate API endpoint.
 It takes a list (or any other Python enumerable) of domains and returns
-the categories associated with this domains by OpenDNS along with a [-1, 0, 1] score, where -1 is a malicious status.
+the categories associated with this domains by Umbrella along with a [-1, 0, 1] score, where -1 is a malicious status.
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -155,7 +155,7 @@ will result in:
 
 Calls `domains/name/` Investigate API endpoint.
 
-Use this method to get the date range when the domain being queried was a part of the OpenDNS block list and how long a domain has been in this list
+Use this method to get the date range when the domain being queried was a part of the Umbrella block list and how long a domain has been in this list
 
 ```python
 domains = ["google.com", "baidu.com", "bibikun.ru"]
@@ -254,7 +254,7 @@ will result in:
 
 Calls `whois/emails/{email}` Investigate API endpoint.
 
-Use this method to see WHOIS information for the email address. (For now the OpenDNS API will only return at most 500 results)
+Use this method to see WHOIS information for the email address. For now the Umbrella API will only return at most 500 results.
 
 ```python
 emails = ["dns-admin@google.com"]
@@ -284,7 +284,7 @@ will result in:
 
 Calls `whois/nameservers/{nameserver}` Investigate API endpoint.
 
-Use this method to see WHOIS information for the nameserver. (For now the OpenDNS API will only return at most 500 results)
+Use this method to see WHOIS information for the nameserver. For now the Umbrella API will only return at most 500 results.
 
 ```python
 nameservers = ["ns2.google.com"]
@@ -435,7 +435,7 @@ don't pass the `resources_per_req` parameter.
 Of course when calling the API wrapper methods in the `VirusTotalApi` class you can pass as many resources
 as you want and the wrapper will take care of producing as many API calls as necessary to satisfy the request rate.
 
-Similarly to OpenDNS API wrapper, you can also specify the file name where the responses will be cached:
+You can also specify the file name where the responses will be cached:
 
 ```python
 vt = VirusTotalApi("<VIRUSTOTAL-API-KEY-HERE>", cache_file_name="/tmp/cache.virustotal.json")
