@@ -129,7 +129,7 @@ class MultiRequest(object):
         self._max_retry = max_retry
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()
-        self._session.mount('https://', SSLAdapter())
+        self._session.mount('https://', SSLAdapter(pool_maxsize=max(10, max_requests)))
 
     def multi_get(self, urls, query_params=None, to_json=True):
         """Issue multiple GET requests.
