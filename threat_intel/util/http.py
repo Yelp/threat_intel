@@ -12,7 +12,6 @@ import ssl
 import time
 from collections import namedtuple
 from collections import OrderedDict
-import pdb
 
 import grequests
 from requests import Session
@@ -130,7 +129,6 @@ class MultiRequest(object):
         self._max_retry = max_retry
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._session = Session()
-        pdb.set_trace()
         self._session.mount('https://', SSLAdapter(pool_maxsize=max(10, max_requests)))
 
     def multi_get(self, urls, query_params=None, to_json=True):
