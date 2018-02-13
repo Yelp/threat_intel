@@ -101,9 +101,15 @@ class RateLimiter(object):
 
 class AvailabilityLimiter(object):
 
-    """Limits the total number of requests issued for a session"""
+    """Limits the total number of requests issued for a session."""
 
     def __init__(self, total_retries):
+        """ Wrapper object for managing total session retry limit.
+
+        Args:
+                total_retries: Total request attempts to be made per sesssion. 
+                               This is shared between all request objects.
+        """
         self.total_retries = total_retries
 
     def map_with_retries(self, requests, responses_for_requests, *args, **kwargs):
@@ -115,9 +121,12 @@ class AvailabilityLimiter(object):
         :param exception_handler: Callback function, called when exception occured. Params: Request, Exception
         :param args: Additional arguments to pass into a retry mapping call
         :param kwargs: Keyword arguments passed into the grequests wrapper, e.g. exception_handler
+
+
         """
         _exception_handler = kwargs.pop('exception_handler', None)
         retries = []
+
 
         def exception_handler(request, exception, *args, **kwargs):
             if self.total_retries > 0:
@@ -130,19 +139,22 @@ class AvailabilityLimiter(object):
 
         for request, response in zip(requests, responses):
             if response is not None and response.status_code == 403:
+                logging.debug('Request was received with a 403 response status code.')
                 raise InvalidRequestError('Access forbidden')
             if response:
                 responses_for_requests[request] = response
 
         # Recursively retry failed requests with the modified total retry count
         if retries:
-            self.map_with_retries(retries, responses_for_requests, *args, exception_handler=_exception_handler, **kwargs)
+            self.map_with_retries(retries, responses_for_requests,
+                 *args, exception_handler=_exception_handler, **kwargs)
 
 class MultiRequest(object):
 
     """Wraps grequests to make simultaneous HTTP requests.
 
     Can use a RateLimiter to limit # of outstanding requests.
+    Can also use AvailabilityLimiter to limit total # of request issuance threshold.
     `multi_get` and `multi_post` try to be smart about how many requests to issue:
 
     * One url & one param - One request will be made.
@@ -153,7 +165,8 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20, rate_limit=0, req_timeout=None, max_retry=10, total_retry=100):
+    def __init__(self, default_headers=None, max_requests=20,
+            rate_limit=0, req_timeout=None, max_retry=10, total_retry=100):
         """Create the MultiRequest.
 
         Args:
@@ -161,6 +174,12 @@ class MultiRequest(object):
             max_requests - Maximum number of requests to issue at once
             rate_limit - Maximum number of requests to issue per second
             req_timeout - Maximum number of seconds to wait without reading a response byte before deciding an error has occurred
+            max_retry - The total number of attempts to retry a single batch of requests
+            total_retry - The total number of request retries that can be made through the entire session
+        Note there is a difference between `max_retry` and `total_retry`:
+            - `max_retry` refers to how many times a batch of requests will be re-issued collectively
+            - `total_retry` refers to a limit on the total number of outstanding requests made
+            Once the latter is exhausted, no failed request within the whole session will be retried.
         """
         self._default_headers = default_headers
         self._max_requests = max_requests
