@@ -10,7 +10,7 @@ from xml.etree.ElementTree import ParseError
 
 class AlexaRankingApi(object):
 
-    BASE_DOMAIN = u'https://data.alexa.com/data?cli=10'
+    BASE_URL = u'https://data.alexa.com/data?cli=10'
 
     def __init__(self, resources_per_req=10, cache_file_name=None,
                  update_cache=True, req_timeout=None):
@@ -68,7 +68,7 @@ class AlexaRankingApi(object):
         """
         params = [{'url': domain} for domain in domains]
         responses = self._requests.multi_get(
-            self.BASE_DOMAIN, query_params=params, to_json=False)
+            self.BASE_URL, query_params=params, to_json=False)
         return responses
 
     def _extract_response_xml(self, domain, response):

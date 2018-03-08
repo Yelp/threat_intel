@@ -14,10 +14,7 @@ class AlexaRankingApiTest(T.TestCase):
 
     def mock_ok_response(self):
         """Mocks a successful request response."""
-        content_ok = '<ALEXA VER="0.9" URL="domain1.com" HOME="0" AID="=" IDN="adtech.de/">'\
-            '<SD><POPULARITY URL="domain1.com" TEXT="81743" SOURCE="panel"/>'\
-            '<REACH RANK="76276"/><RANK DELTA="-67329"/>'\
-            '<COUNTRY CODE="GR" NAME="Greece" RANK="1657"/></SD></ALEXA>'
+        content_ok = open("tests/data/response.xml").read()
         response = Response()
         response.status_code = 200
         response._content = content_ok
@@ -45,15 +42,17 @@ class AlexaRankingApiTest(T.TestCase):
             call: Function in AlexaRankingApi to call.
             endpoint: Endpoint of AlexaRanking API that is hit.
             request: Call arguments.
-            expected_query_params: Query parameters that should be passed to API.
+            expected_query_params: Parameters that should be passed to API.
             api_response: The expected response by the API.
-            expected_result: What the call should return (given the api response provided).
+            expected_result: What the call should return.
         """
         with patch.object(self.ar, '_requests') as request_mock:
             request_mock.multi_get.return_value = api_response
             result = call(request)
             request_mock.multi_get.assert_called_with(
-                self.ar.BASE_DOMAIN, to_json=False, query_params=expected_query_params)
+                self.ar.BASE_URL,
+                to_json=False,
+                query_params=expected_query_params)
             T.assert_equal(result, expected_result)
 
     def test_get_alexa_rankings_good_response(self):
