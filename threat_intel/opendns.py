@@ -122,13 +122,14 @@ class InvestigateApi(object):
         return self._multi_post(url_path, domains)
 
     @MultiRequest.error_handling
-    def _multi_get(self, cache_api_name, fmt_url_path, url_params):
+    def _multi_get(self, cache_api_name, fmt_url_path, url_params, query_params=None):
         """Makes multiple GETs to an OpenDNS endpoint.
 
         Args:
             cache_api_name: string api_name for caching
             fmt_url_path: format string for building URL paths
             url_params: An enumerable of strings used in building URLs
+            query_params - None / dict / list of dicts containing query params
         Returns:
             A dict of {url_param: api_result}
         """
@@ -140,7 +141,7 @@ class InvestigateApi(object):
 
         if len(url_params):
             urls = self._to_urls(fmt_url_path, url_params)
-            responses = self._requests.multi_get(urls)
+            responses = self._requests.multi_get(urls, query_params)
             for url_param, response in zip(url_params, responses):
                 if self._cache:
                     self._cache.cache_value(cache_api_name, url_param, response)
@@ -293,6 +294,26 @@ class InvestigateApi(object):
         api_name = 'opendns-sample'
         fmt_url_path = u'sample/{0}'
         return self._multi_get(api_name, fmt_url_path, hashes)
+
+    def search(self, patterns, start=30, limit=1000, include_category=False):
+        """Performs pattern searches against the Investigate database.
+
+        Args:
+            patterns: An enumerable of RegEx domain patterns to search for
+            start:   How far back results extend from in days (max is 30)
+            limit:   Number of results to show (max is 1000)
+            include_category: Include OpenDNS security categories
+        Returns:
+            An enumerable of matching domain strings
+        """
+        api_name = 'opendns-patterns'
+        fmt_url_path = u'search/{0}'
+        start = '-{0}days'.format(start)
+        include_category = str(include_category).lower()
+        query_params = {'start': start,
+                        'limit': limit,
+                        'includecategory': include_category}
+        return self._multi_get(api_name, fmt_url_path, patterns, query_params)
 
 
 class ResponseError(Exception):
