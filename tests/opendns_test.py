@@ -276,7 +276,7 @@ class InvestigateApiTest(T.TestCase):
 
     def test_search(self):
         self._test_api_call_get(call=self.opendns.search,
-                                endpoint=u'search/{}',
+                                endpoint=u'search/{0}',
                                 request=['pattern'],
                                 expected_url_params='pattern',
                                 api_response={},
@@ -284,3 +284,11 @@ class InvestigateApiTest(T.TestCase):
                                 expected_query_params={'start': '-30days',
                                                        'includecategory': 'false',
                                                        'limit': 1000})
+
+    def test_risk_score(self):
+        self._test_api_call_get(call=self.opendns.risk_score,
+                                endpoint=u'domains/risk-score/{0}',
+                                request=['domain'],
+                                expected_url_params='domain',
+                                api_response={},
+                                expected_result={})
