@@ -12,6 +12,7 @@ from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
 from threat_intel.util.http import MultiRequest
 
+
 def _cached_by_domain(api_name):
     """A caching wrapper for functions that take a list of domains as
     parameters.
@@ -140,7 +141,6 @@ class InvestigateApi(object):
 
         if len(url_params):
             urls = self._to_urls(fmt_url_path, url_params)
-            print urls
             responses = self._requests.multi_get(urls, query_params)
             for url_param, response in zip(url_params, responses):
                 if self._cache:
