@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Utilities for dealing with HTTP requests
 #
 # RateLimiter helps to only make a certain number of calls per second.

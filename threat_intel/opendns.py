@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # InvestigateApi makes calls to the OpenDNS Investigate API.
 #

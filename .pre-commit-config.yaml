@@ -10,7 +10,6 @@ repos:
     -   id: check-added-large-files
     -   id: check-byte-order-marker
     -   id: fix-encoding-pragma
-        args: [--remove]
     -   id: flake8
     -   id: requirements-txt-fixer
 -   repo: git://github.com/asottile/reorder_python_imports
