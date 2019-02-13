@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Utilities for dealing with HTTP requests
 #
@@ -7,7 +6,6 @@
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
 import logging
-from six.moves import range
 import ssl
 import time
 from collections import namedtuple
@@ -17,6 +15,7 @@ import grequests
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from six.moves import range
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
@@ -99,6 +98,7 @@ class RateLimiter(object):
         if cull_from > -1:
             self._call_times = self._call_times[cull_from + 1:]
 
+
 class AvailabilityLimiter(object):
 
     """Limits the total number of requests issued for a session."""
@@ -107,7 +107,7 @@ class AvailabilityLimiter(object):
         """ Wrapper object for managing total session retry limit.
 
         Args:
-                total_retries: Total request attempts to be made per sesssion. 
+                total_retries: Total request attempts to be made per sesssion.
                                This is shared between all request objects.
         """
         self.total_retries = total_retries
@@ -127,7 +127,6 @@ class AvailabilityLimiter(object):
         _exception_handler = kwargs.pop('exception_handler', None)
         retries = []
 
-
         def exception_handler(request, exception, *args, **kwargs):
             if self.total_retries > 0:
                 self.total_retries -= 1
@@ -141,13 +140,16 @@ class AvailabilityLimiter(object):
             if response is not None and response.status_code == 403:
                 logging.debug('Request was received with a 403 response status code.')
                 raise InvalidRequestError('Access forbidden')
-            if response:
+            if response is not None:
                 responses_for_requests[request] = response
 
         # Recursively retry failed requests with the modified total retry count
         if retries:
-            self.map_with_retries(retries, responses_for_requests,
-                 *args, exception_handler=_exception_handler, **kwargs)
+            self.map_with_retries(
+                retries, responses_for_requests, *args,
+                exception_handler=_exception_handler, **kwargs
+            )
+
 
 class MultiRequest(object):
 
@@ -165,8 +167,10 @@ class MultiRequest(object):
     _VERB_GET = 'GET'
     _VERB_POST = 'POST'
 
-    def __init__(self, default_headers=None, max_requests=20,
-            rate_limit=0, req_timeout=None, max_retry=10, total_retry=100):
+    def __init__(
+        self, default_headers=None, max_requests=20, rate_limit=0,
+        req_timeout=None, max_retry=10, total_retry=100, drop_404s=False,
+    ):
         """Create the MultiRequest.
 
         Args:
@@ -185,6 +189,7 @@ class MultiRequest(object):
         self._max_requests = max_requests
         self._req_timeout = req_timeout or 25.0
         self._max_retry = max_retry
+        self._drop_404s = drop_404s
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._availability_limiter = AvailabilityLimiter(total_retry) if total_retry else None
         self._session = Session()
@@ -219,7 +224,10 @@ class MultiRequest(object):
         Raises:
             InvalidRequestError - Can not decide how many requests to issue.
         """
-        return self._multi_request(MultiRequest._VERB_POST, urls, query_params, data, to_json=to_json, send_as_file=send_as_file)
+        return self._multi_request(
+            MultiRequest._VERB_POST, urls, query_params,
+            data, to_json=to_json, send_as_file=send_as_file,
+        )
 
     def _create_request(self, verb, url, query_params=None, data=None, send_as_file=False):
         """Helper method to create a single `grequests.post` or `grequests.get`.
@@ -241,7 +249,7 @@ class MultiRequest(object):
             'headers': self._default_headers,
             'params': query_params,
             'timeout': self._req_timeout,
-            'session': self._session
+            'session': self._session,
         }
 
         if MultiRequest._VERB_POST == verb:
@@ -286,11 +294,15 @@ class MultiRequest(object):
 
         max_count = max(url_count, query_param_count, data_count)
 
-        if ((url_count < max_count and url_count > 1) or
-                (query_param_count < max_count and query_param_count > 1) or
-                (data_count < max_count and data_count > 1)):
-            raise InvalidRequestError('Mismatched parameter count url_count:{0} query_param_count:{1} data_count:{2} max_count:{3}',
-                                      url_count, query_param_count, data_count, max_count)
+        if (
+            max_count > url_count > 1
+            or max_count > query_param_count > 1
+            or max_count > data_count > 1
+        ):
+            raise InvalidRequestError(
+                'Mismatched parameter count url_count:{0} query_param_count:{1} data_count:{2} max_count:{3}',
+                url_count, query_param_count, data_count, max_count,
+            )
 
         # Pad out lists
         if url_count < max_count:
@@ -324,6 +336,7 @@ class MultiRequest(object):
         Raises:
             InvalidRequestError - if any of the requests returns "403 Forbidden" response
         """
+        failed_requests = []
         responses_for_requests = OrderedDict.fromkeys(requests)
 
         for retry in range(self._max_retry):
@@ -333,14 +346,17 @@ class MultiRequest(object):
 
                 failed_requests = []
                 for request, response in responses_for_requests.items():
-                    if not response:
+                    if self._drop_404s and response is not None and response.status_code == 404:
+                        logging.warning('Request to {0} failed with status code 404, dropping.'.format(request.url))
+                    elif not response:
                         failed_requests.append(request)
 
                 if not failed_requests:
                     break
 
                 logging.warning('Try #{0}. Expected {1} successful response(s) but only got {2}.'.format(
-                    retry + 1, len(requests), len(requests) - len(failed_requests)))
+                    retry + 1, len(requests), len(requests) - len(failed_requests),
+                ))
 
                 # retry only for the failed requests
                 requests = failed_requests
@@ -359,7 +375,8 @@ class MultiRequest(object):
                     # in case response text does contain some non-ascii characters
                     failed_response_text = failed_response.text.encode('ascii', 'xmlcharrefreplace')
                     logging.warning('Request to {0} failed with status code {1}. Response text: {2}'.format(
-                        failed_request.url, failed_response.status_code, failed_response_text))
+                        failed_request.url, failed_response.status_code, failed_response_text,
+                    ))
                 else:
                     logging.warning('Request to {0} failed with None response.'.format(failed_request.url))
 
@@ -378,7 +395,8 @@ class MultiRequest(object):
             return response.json()
         except ValueError:
             logging.warning('Expected response in JSON format from {0} but the actual response text is: {1}'.format(
-                response.request.url, response.text))
+                response.request.url, response.text,
+            ))
         return None
 
     def _multi_request(self, verb, urls, query_params, data, to_json=True, send_as_file=False):
@@ -411,7 +429,9 @@ class MultiRequest(object):
 
             requests = []
             for url, query_param, datum in param_batch:
-                requests.append(self._create_request(verb, url, query_params=query_param, data=datum, send_as_file=send_as_file))
+                requests.append(self._create_request(
+                    verb, url, query_params=query_param, data=datum, send_as_file=send_as_file,
+                ))
 
             responses = self._wait_for_response(requests)
             for response in responses:

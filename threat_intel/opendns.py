@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 #
 # InvestigateApi makes calls to the OpenDNS Investigate API.
 #
-from six.moves import range
 from warnings import warn
 
 import simplejson
+from six.moves import range
 
 from threat_intel.util.api_cache import ApiCache
 from threat_intel.util.error_messages import write_error_message
@@ -60,7 +59,10 @@ class InvestigateApi(object):
 
     def __init__(self, api_key, cache_file_name=None, update_cache=True, req_timeout=None):
         auth_header = {'Authorization': 'Bearer {0}'.format(api_key)}
-        self._requests = MultiRequest(default_headers=auth_header, max_requests=12, rate_limit=30, req_timeout=req_timeout)
+        self._requests = MultiRequest(
+            default_headers=auth_header, max_requests=12, rate_limit=30,
+            req_timeout=req_timeout, drop_404s=True,
+        )
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
@@ -116,8 +118,10 @@ class InvestigateApi(object):
         This method is deprecated since OpenDNS Investigate API
         endpoint is also deprecated.
         """
-        warn('OpenDNS Domain Scores endpoint is deprecated. Use '
-             'InvestigateApi.categorization() instead', DeprecationWarning)
+        warn(
+            'OpenDNS Domain Scores endpoint is deprecated. Use '
+            'InvestigateApi.categorization() instead', DeprecationWarning,
+        )
         url_path = 'domains/score/'
         return self._multi_post(url_path, domains)
 
@@ -310,11 +314,13 @@ class InvestigateApi(object):
         fmt_url_path = u'search/{0}'
         start = '-{0}days'.format(start)
         include_category = str(include_category).lower()
-        query_params = {'start': start,
-                        'limit': limit,
-                        'includecategory': include_category}
+        query_params = {
+            'start': start,
+            'limit': limit,
+            'includecategory': include_category,
+        }
         return self._multi_get(api_name, fmt_url_path, patterns, query_params)
-         
+
     def risk_score(self, domains):
         """Performs Umbrella risk score analysis on the input domains
 
@@ -326,6 +332,7 @@ class InvestigateApi(object):
         api_name = 'opendns-risk_score'
         fmt_url_path = u'domains/risk-score/{0}'
         return self._multi_get(api_name, fmt_url_path, domains)
+
 
 class ResponseError(Exception):
 
