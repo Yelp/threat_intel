@@ -30,6 +30,11 @@ class MultiRequestTest(T.TestCase):
         response.status_code = 500
         response._content = u'Internal Server Error'.encode('utf-8')
 
+    def mock_not_found_response(self, response):
+        """Mocks a 404 response by changes its status code"""
+        response.status_code = 404
+        response._content = u'Not Found'.encode('utf-8')
+
     def mock_unsuccessful_responses(self, responses):
         """Mocks unsuccessful responses by changing their status code to 500 and the content to indicate the error."""
         for response in responses:
@@ -84,7 +89,7 @@ class MultiRequestTest(T.TestCase):
         responses_to_calls = [
             self.mock_ok_responses(number_of_requests),
             self.mock_ok_responses(number_of_requests - 1),
-            self.mock_ok_responses(number_of_requests - 2)
+            self.mock_ok_responses(number_of_requests - 2),
         ]
         # mock unsuccessful responses to the first call to grequests.map
         self.mock_unsuccessful_responses(responses_to_calls[0][0:3])
@@ -114,7 +119,8 @@ class MultiRequestTest(T.TestCase):
         T.assert_equals(5, len(actual_responses))
         T.assert_is(None, actual_responses[3])
         logging.warning.called_once_with(
-            'Expected response in JSON format from example.com/movie/TheRevenant but the actual response text is: This is not JSON')
+            'Expected response in JSON format from example.com/movie/TheRevenant but the actual response text is: This is not JSON',
+        )
 
     def assert_only_unsuccessful_requests(self, call, unsuccessful_responses):
         """Asserts that the requests in call where only the ones that failed, based on the `unsuccessful_responses` list."""
@@ -129,7 +135,7 @@ class MultiRequestTest(T.TestCase):
         responses_to_calls = [
             self.mock_ok_responses(10),
             self.mock_ok_responses(3),
-            self.mock_ok_responses(2)
+            self.mock_ok_responses(2),
         ]
         # mock unsuccessful responses to the first call to grequests.map
         unsuccessful_responses_first_call = [
@@ -169,3 +175,12 @@ class MultiRequestTest(T.TestCase):
         # assert that only the failed requests from the second call to grequests.map are passed in the third call
         third_call = grequests.map.call_args_list[2]
         self.assert_only_unsuccessful_requests(third_call, unsuccessful_responses_second_call)
+
+    def test_multi_get_drop_404s(self):
+        responses_to_calls = self.mock_ok_responses(3)
+        self.mock_not_found_response(responses_to_calls[1])
+        query_params = [{'Hugh Glass': 'Leonardo DiCaprio'}] * 3
+        self.mock_grequests_map(responses_to_calls)
+        result = MultiRequest(drop_404s=True).multi_get('example.org', query_params)
+        assert grequests.map.call_count == 1
+        assert result[1] is None
