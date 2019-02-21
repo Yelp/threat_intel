@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from setuptools import find_packages
 from setuptools import setup
 
@@ -14,9 +15,9 @@ setup(
     description="Collection of the API calls for various threat intel feeds.",
     packages=find_packages(),
     install_requires=[
-        "requests[security]",
-        "grequests",
-        "simplejson",
-        "six",
+        "requests-futures==0.9.9",
+        "requests[security]==2.20.0",
+        "simplejson==3.10.0",
+        "six==1.10.0",
     ],
 )

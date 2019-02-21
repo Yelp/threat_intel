@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
+from itertools import chain
 
-import grequests
 import testify as T
 from mock import MagicMock
 from requests.models import Response
+from requests_futures import sessions
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.http import MultiRequest
@@ -50,23 +51,25 @@ class MultiRequestTest(T.TestCase):
         # this is necessary for the log message referencing the URL
         response.request.response = response
 
-    def mock_grequests_map(self, responses):
-        """Mocks `grequests.map()` method call returning `responses`."""
-        grequests.map = MagicMock()
-        grequests.map.return_value = responses
+    def mock_request_futures(self, responses):
+        """Mocks session.request method call returning `responses`."""
+        session_class = MagicMock(name='requests_session')
+        sessions.Session = session_class
+        session_class.request = MagicMock(side_effect=responses)
+        return session_class
 
     def test_multi_get_none_response(self):
-        """Tests the behavior of the `multi_get()` method when one of the responses from `grequests.map` is `None`."""
+        """Tests the behavior of the `multi_get()` method when one of the responses is `None`."""
         number_of_requests = 10
         query_params = [{'Jim Bridger': 'Will Poulter'}] * number_of_requests
         responses = self.mock_ok_responses(number_of_requests)
         responses[3] = None
-        self.mock_grequests_map(responses)
+        self.mock_request_futures(responses)
 
         actual_responses = MultiRequest(max_retry=1).multi_get('example.com', query_params)
 
         T.assert_equals(10, len(actual_responses))
-        T.assert_is(None, actual_responses[3])
+        T.assert_equal(1, actual_responses.count(None))
 
     def test_multi_get_access_forbidden(self):
         """Tests the exception handling in the cases when a request returns "403 Forbidden"."""
@@ -74,14 +77,14 @@ class MultiRequestTest(T.TestCase):
         query_params = [{'Hugh Glass': 'Leonardo DiCaprio'}] * number_of_requests
         responses = self.mock_ok_responses(number_of_requests)
         self.mock_forbidden_response(responses[13])
-        self.mock_grequests_map(responses)
+        self.mock_request_futures(responses)
 
         with T.assert_raises_such_that(InvalidRequestError, lambda e: T.assert_equal(str(e), 'Access forbidden')):
             MultiRequest().multi_get('example.com', query_params)
 
     def test_multi_get_max_retry(self):
         """Tests the case when the number of the maximum retries is reached, due to the unsuccessful responses.
-        `grequests.map` is called 3 times (based on `max_retry`), each time there is only one successful response.
+        Request is repeated 3 times (based on `max_retry`), each time there is only one successful response.
         Eventually the call to `multi_get` returns the responses among which one is unsuccessful (`None`).
         """
         number_of_requests = 4
@@ -91,19 +94,18 @@ class MultiRequestTest(T.TestCase):
             self.mock_ok_responses(number_of_requests - 1),
             self.mock_ok_responses(number_of_requests - 2),
         ]
-        # mock unsuccessful responses to the first call to grequests.map
+        # mock unsuccessful responses to the first call
         self.mock_unsuccessful_responses(responses_to_calls[0][0:3])
-        # mock unsuccessful responses to the second call to grequests.map
+        # mock unsuccessful responses to the second call
         self.mock_unsuccessful_responses(responses_to_calls[1][1:3])
-        # mock unsuccessful response to the third call to grequests.map
+        # mock unsuccessful response to the third call
         self.mock_unsuccessful_response(responses_to_calls[2][1])
-        grequests.map = MagicMock()
-        grequests.map.side_effect = responses_to_calls
+        session_mock = self.mock_request_futures(chain.from_iterable(responses_to_calls))
 
         actual_responses = MultiRequest(max_retry=3).multi_get('example.com', query_params)
 
-        T.assert_equal(3, grequests.map.call_count)
-        T.assert_is(None, actual_responses[2])
+        T.assert_equal(9, session_mock.request.call_count)
+        T.assert_equal(1, actual_responses.count(None))
 
     def test_multi_get_response_to_json(self):
         """Tests the exception handling in the cases when the response was supposed to return JSON but did not."""
@@ -111,47 +113,42 @@ class MultiRequestTest(T.TestCase):
         query_params = [{'Andrew Henry': 'Domhnall Gleeson'}] * number_of_requests
         responses = self.mock_ok_responses(number_of_requests)
         self.mock_json_convertion_error(responses[3])
-        self.mock_grequests_map(responses)
+        self.mock_request_futures(responses)
         logging.warning = MagicMock()
 
         actual_responses = MultiRequest().multi_get('example.com', query_params)
 
         T.assert_equals(5, len(actual_responses))
-        T.assert_is(None, actual_responses[3])
+        T.assert_equals(1, actual_responses.count(None))
         logging.warning.called_once_with(
-            'Expected response in JSON format from example.com/movie/TheRevenant but the actual response text is: This is not JSON',
+            'Expected response in JSON format from example.com/movie/TheRevenant'
+            ' but the actual response text is: This is not JSON',
         )
 
-    def assert_only_unsuccessful_requests(self, call, unsuccessful_responses):
-        """Asserts that the requests in call where only the ones that failed, based on the `unsuccessful_responses` list."""
-        requests = call[0][0]
-        T.assert_equal(len(unsuccessful_responses), len(requests))
-
     def test_multi_get_retry_only_unsuccessful_requests(self):
-        """Tests whether only the unsuccessful requests are passed to the consequitive calls to `grequests.map()`.
-        The calls to `grequests.map()` return 3 unsuccessful responses to the first call and then 2 unsuccessful responses to the second.
-        The third (and the last) call to `grequests.map()` returns successful responses only.
+        """Tests whether only the unsuccessful requests are passed to the consequitive request calls.
+        3 unsuccessful responses to the first request batch and then 2 unsuccessful responses to the second.
+        The third (and the last) returns successful responses only.
         """
         responses_to_calls = [
             self.mock_ok_responses(10),
             self.mock_ok_responses(3),
             self.mock_ok_responses(2),
         ]
-        # mock unsuccessful responses to the first call to grequests.map
+        # mock unsuccessful responses to the first call
         unsuccessful_responses_first_call = [
             responses_to_calls[0][2],
             responses_to_calls[0][3],
             responses_to_calls[0][5],
         ]
         self.mock_unsuccessful_responses(unsuccessful_responses_first_call)
-        # mock unsuccessful responses to the second call to grequests.map
+        # mock unsuccessful responses to the second call
         unsuccessful_responses_second_call = [
             responses_to_calls[1][0],
             responses_to_calls[1][2],
         ]
         self.mock_unsuccessful_responses(unsuccessful_responses_second_call)
-        grequests.map = MagicMock()
-        grequests.map.side_effect = responses_to_calls
+        session_mock = self.mock_request_futures(chain.from_iterable(responses_to_calls))
 
         query_params = [
             {'Max Rockatansky': 'Tom Hardy'},
@@ -167,20 +164,19 @@ class MultiRequestTest(T.TestCase):
         ]
 
         MultiRequest().multi_get('example.com', query_params)
-
-        T.assert_equals(3, grequests.map.call_count)
-        # assert that only the failed requests from the first call to grequests.map are passed in the second call
-        second_call = grequests.map.call_args_list[1]
-        self.assert_only_unsuccessful_requests(second_call, unsuccessful_responses_first_call)
-        # assert that only the failed requests from the second call to grequests.map are passed in the third call
-        third_call = grequests.map.call_args_list[2]
-        self.assert_only_unsuccessful_requests(third_call, unsuccessful_responses_second_call)
+        T.assert_equal(session_mock.request.call_count, 15)  # 10 + 3 + 2
+        call_params = [kwargs['params'] for args, kwargs in session_mock.request.call_args_list]
+        # Assert retries (with requests-future we cannot make assumptions on the order)
+        call_params_keys = [list(cp.keys())[0] for cp in call_params]
+        T.assert_equal(call_params_keys.count('Nux'), 3)
+        T.assert_equal(call_params_keys.count('Immortan Joe'), 2)
+        T.assert_equal(call_params_keys.count('Rictus Erectus'), 3)
 
     def test_multi_get_drop_404s(self):
         responses_to_calls = self.mock_ok_responses(3)
         self.mock_not_found_response(responses_to_calls[1])
         query_params = [{'Hugh Glass': 'Leonardo DiCaprio'}] * 3
-        self.mock_grequests_map(responses_to_calls)
+        session_mock = self.mock_request_futures(responses_to_calls)
         result = MultiRequest(drop_404s=True).multi_get('example.org', query_params)
-        assert grequests.map.call_count == 1
-        assert result[1] is None
+        T.assert_equal(session_mock.request.call_count, 3)
+        T.assert_equal(result.count(None), 1)
