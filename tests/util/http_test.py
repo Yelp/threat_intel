@@ -165,12 +165,6 @@ class MultiRequestTest(T.TestCase):
 
         MultiRequest().multi_get('example.com', query_params)
         T.assert_equal(session_mock.request.call_count, 15)  # 10 + 3 + 2
-        call_params = [kwargs['params'] for args, kwargs in session_mock.request.call_args_list]
-        # Assert retries (with requests-future we cannot make assumptions on the order)
-        call_params_keys = [list(cp.keys())[0] for cp in call_params]
-        T.assert_equal(call_params_keys.count('Nux'), 3)
-        T.assert_equal(call_params_keys.count('Immortan Joe'), 2)
-        T.assert_equal(call_params_keys.count('Rictus Erectus'), 3)
 
     def test_multi_get_drop_404s(self):
         responses_to_calls = self.mock_ok_responses(3)
