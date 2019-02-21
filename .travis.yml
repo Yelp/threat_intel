@@ -14,3 +14,4 @@ deploy:
         secure: QG9rd2z6pH4E5NCph+mw739wsaTlTpy1c5+AR1q+w/ZSrMpucNdp1i8BXAgpj2kIvuaIQQd3Behu+SVd7u5TSCZoAE7PxUKBFvEiN/7g++RVlDlPcpXTVQT8qXfvFnTGCnS95pLhXVIMDJU4cUjjDS6kshBVuvn2MTwskY4emow=
     on:
         tags: true
+        python: '3.6'
