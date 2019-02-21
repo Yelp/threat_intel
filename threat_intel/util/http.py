@@ -2,7 +2,7 @@
 # Utilities for dealing with HTTP requests
 #
 # RateLimiter helps to only make a certain number of calls per second.
-# MultiRequest wraps grequests and issues multiple requests at once with an easy to use interface.
+# MultiRequest wraps requests-futures and issues multiple requests at once with an easy to use interface.
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
 import logging
@@ -10,16 +10,20 @@ import ssl
 import time
 from collections import namedtuple
 from collections import OrderedDict
+from functools import partial
 
-import grequests
-from requests import Session
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from requests.exceptions import RequestException
+from requests_futures.sessions import FuturesSession
 from six.moves import range
+from urllib3.util.retry import Retry
 
 from threat_intel.exceptions import InvalidRequestError
 from threat_intel.util.error_messages import write_error_message
 from threat_intel.util.error_messages import write_exception
+
+
+PreparedRequest = namedtuple('PreparedRequest', ('callable', 'url'))
 
 
 class SSLAdapter(HTTPAdapter):
@@ -28,9 +32,9 @@ class SSLAdapter(HTTPAdapter):
 
     By explictly controlling which TLS version is used when connecting, avoid the client offering only SSLv2 or SSLv3.
 
-    While it may seem counter intuitive, the best version specifier to pass is `ssl.PROTOCOL_SSLv23`
-    This will actually choose the highest available protocol compatible with both client and server.
-    For details see the documentation for `ssl.wrap_socket` https://docs.python.org/2/library/ssl.html#socket-creation
+    The best version specifier to pass is `ssl.PROTOCOL_TLS`, as this will choose the highest available protocol
+    compatible with both client and server. For details see the documentation for `ssl.wrap_socket`
+    (https://docs.python.org/2/library/ssl.html#socket-creation).
 
     To use this class, mount it to a `requests.Session` and then make HTTPS using the session object.
 
@@ -42,19 +46,22 @@ class SSLAdapter(HTTPAdapter):
         # Make a requests call through the session
         session.get('https://api.github.com/events')
 
-        # Make a grequests call through the session
-        grequests.get('https://api.github.com/events', session=session)
-
     """
 
     def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
         """Called to initialize the HTTPAdapter when no proxy is used."""
-        pool_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        try:
+            pool_kwargs['ssl_version'] = ssl.PROTOCOL_TLS
+        except AttributeError:
+            pool_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
         return super(SSLAdapter, self).init_poolmanager(connections, maxsize, block, **pool_kwargs)
 
     def proxy_manager_for(self, proxy, **proxy_kwargs):
         """Called to initialize the HTTPAdapter when a proxy is used."""
-        proxy_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
+        try:
+            proxy_kwargs['ssl_version'] = ssl.PROTOCOL_TLS
+        except AttributeError:
+            proxy_kwargs['ssl_version'] = ssl.PROTOCOL_SSLv23
         return super(SSLAdapter, self).proxy_manager_for(proxy, **proxy_kwargs)
 
 
@@ -112,48 +119,41 @@ class AvailabilityLimiter(object):
         """
         self.total_retries = total_retries
 
-    def map_with_retries(self, requests, responses_for_requests, *args, **kwargs):
-        """Wraps around grequests.map to provide session-based retry functionality
+    def map_with_retries(self, requests, responses_for_requests):
+        """Provides session-based retry functionality
 
         :param requests: A collection of Request objects.
         :param responses_for_requests: Dictionary mapping of requests to responses
         :param max_retries: The maximum number of retries to perform per session
-        :param exception_handler: Callback function, called when exception occured. Params: Request, Exception
         :param args: Additional arguments to pass into a retry mapping call
-        :param kwargs: Keyword arguments passed into the grequests wrapper, e.g. exception_handler
 
 
         """
-        _exception_handler = kwargs.pop('exception_handler', None)
         retries = []
+        response_futures = [preq.callable() for preq in requests]
 
-        def exception_handler(request, exception, *args, **kwargs):
-            if self.total_retries > 0:
-                self.total_retries -= 1
-                retries.append(request)
-            if _exception_handler:
-                return _exception_handler(request, exception, *args, **kwargs)
-
-        responses = grequests.map(requests, exception_handler=exception_handler, *args, **kwargs)
-
-        for request, response in zip(requests, responses):
-            if response is not None and response.status_code == 403:
-                logging.debug('Request was received with a 403 response status code.')
-                raise InvalidRequestError('Access forbidden')
-            if response is not None:
-                responses_for_requests[request] = response
+        for request, response_future in zip(requests, response_futures):
+            try:
+                response = response_future.result()
+                if response is not None and response.status_code == 403:
+                    logging.warning('Request to {} caused a 403 response status code.'.format(request.url))
+                    raise InvalidRequestError('Access forbidden')
+                if response is not None:
+                    responses_for_requests[request] = response
+            except RequestException as re:
+                logging.error('An exception was raised for {}: {}'.format(request.url, re))
+                if self.total_retries > 0:
+                    self.total_retries -= 1
+                    retries.append(request)
 
         # Recursively retry failed requests with the modified total retry count
         if retries:
-            self.map_with_retries(
-                retries, responses_for_requests, *args,
-                exception_handler=_exception_handler, **kwargs
-            )
+            self.map_with_retries(retries, responses_for_requests)
 
 
 class MultiRequest(object):
 
-    """Wraps grequests to make simultaneous HTTP requests.
+    """Wraps requests-futures to make simultaneous HTTP requests.
 
     Can use a RateLimiter to limit # of outstanding requests.
     Can also use AvailabilityLimiter to limit total # of request issuance threshold.
@@ -168,7 +168,7 @@ class MultiRequest(object):
     _VERB_POST = 'POST'
 
     def __init__(
-        self, default_headers=None, max_requests=20, rate_limit=0,
+        self, default_headers=None, max_requests=10, rate_limit=0,
         req_timeout=None, max_retry=10, total_retry=100, drop_404s=False,
     ):
         """Create the MultiRequest.
@@ -192,9 +192,13 @@ class MultiRequest(object):
         self._drop_404s = drop_404s
         self._rate_limiter = RateLimiter(rate_limit) if rate_limit else None
         self._availability_limiter = AvailabilityLimiter(total_retry) if total_retry else None
-        self._session = Session()
+        self._session = FuturesSession(max_workers=max_requests)
         retries = Retry(total=0, status_forcelist=[500, 502, 503, 504], raise_on_status=True)
-        self._session.mount('https://', SSLAdapter(max_retries=retries, pool_maxsize=max(10, max_requests)))
+        self._session.mount(
+            'https://', SSLAdapter(
+                max_retries=retries, pool_maxsize=max_requests, pool_connections=max_requests,
+            ),
+        )
 
     def multi_get(self, urls, query_params=None, to_json=True):
         """Issue multiple GET requests.
@@ -204,11 +208,14 @@ class MultiRequest(object):
             query_params - None, a dict, or a list of dicts representing the query params
             to_json - A boolean, should the responses be returned as JSON blobs
         Returns:
-            a list of dicts if to_json is set of grequest.response otherwise.
+            a list of dicts if to_json is set of requests.response otherwise.
         Raises:
             InvalidRequestError - Can not decide how many requests to issue.
         """
-        return self._multi_request(MultiRequest._VERB_GET, urls, query_params, None, to_json=to_json)
+        return self._multi_request(
+            MultiRequest._VERB_GET, urls, query_params,
+            data=None, to_json=to_json,
+        )
 
     def multi_post(self, urls, query_params=None, data=None, to_json=True, send_as_file=False):
         """Issue multiple POST requests.
@@ -220,7 +227,7 @@ class MultiRequest(object):
             to_json - A boolean, should the responses be returned as JSON blobs
             send_as_file - A boolean, should the data be sent as a file.
         Returns:
-            a list of dicts if to_json is set of grequest.response otherwise.
+            a list of dicts if to_json is set of requests.response otherwise.
         Raises:
             InvalidRequestError - Can not decide how many requests to issue.
         """
@@ -230,7 +237,7 @@ class MultiRequest(object):
         )
 
     def _create_request(self, verb, url, query_params=None, data=None, send_as_file=False):
-        """Helper method to create a single `grequests.post` or `grequests.get`.
+        """Helper method to create a single post/get requests.
 
         Args:
             verb - MultiRequest._VERB_POST or MultiRequest._VERB_GET
@@ -249,16 +256,16 @@ class MultiRequest(object):
             'headers': self._default_headers,
             'params': query_params,
             'timeout': self._req_timeout,
-            'session': self._session,
         }
 
         if MultiRequest._VERB_POST == verb:
-            if not send_as_file:
-                return grequests.post(url, data=data, **kwargs)
+            if send_as_file:
+                kwargs['files'] = {'file': data}
             else:
-                return grequests.post(url, files={'file': data}, **kwargs)
+                kwargs['data'] = data
+            return PreparedRequest(partial(self._session.post, url, **kwargs), url)
         elif MultiRequest._VERB_GET == verb:
-            return grequests.get(url, data=data, **kwargs)
+            return PreparedRequest(partial(self._session.get, url, **kwargs), url)
         else:
             raise InvalidRequestError('Invalid verb {0}'.format(verb))
 
@@ -314,17 +321,6 @@ class MultiRequest(object):
 
         return list(zip(urls, query_params, data))
 
-    def _handle_exception(self, request, exception):
-        """Handles grequests exception (timeout, etc.).
-
-        Args:
-            request - A request that caused the exception
-            exception - An exception caused by the request
-        Raises:
-            InvalidRequestError - custom exception encapsulating grequests exception
-        """
-        raise InvalidRequestError('Request to {0} caused an exception: {1}'.format(request.url, exception))
-
     def _wait_for_response(self, requests):
         """Issues a batch of requests and waits for the responses.
         If some of the requests fail it will retry the failed ones up to `_max_retry` times.
@@ -349,7 +345,7 @@ class MultiRequest(object):
                     if self._drop_404s and response is not None and response.status_code == 404:
                         logging.warning('Request to {0} failed with status code 404, dropping.'.format(request.url))
                     elif not response:
-                        failed_requests.append(request)
+                        failed_requests.append((request, response))
 
                 if not failed_requests:
                     break
@@ -359,7 +355,7 @@ class MultiRequest(object):
                 ))
 
                 # retry only for the failed requests
-                requests = failed_requests
+                requests = [fr[0] for fr in failed_requests]
             except InvalidRequestError:
                 raise
             except Exception as e:
@@ -368,9 +364,10 @@ class MultiRequest(object):
                 pass
 
         if failed_requests:
-            logging.warning('Still {0} failed request(s) after {1} retries:'.format(len(failed_requests), self._max_retry))
-            for failed_request in failed_requests:
-                failed_response = failed_request.response
+            logging.warning('Still {0} failed request(s) after {1} retries:'.format(
+                len(failed_requests), self._max_retry,
+            ))
+            for failed_request, failed_response in failed_requests:
                 if failed_response is not None:
                     # in case response text does contain some non-ascii characters
                     failed_response_text = failed_response.text.encode('ascii', 'xmlcharrefreplace')
@@ -409,7 +406,7 @@ class MultiRequest(object):
             data - None, a dict or string, or a list of dicts and strings representing the data body.
             to_json - A boolean, should the responses be returned as JSON blobs
         Returns:
-            If multiple requests are made - a list of dicts if to_json, a list of grequest.response otherwise
+            If multiple requests are made - a list of dicts if to_json, a list of requests responses otherwise
             If a single request is made, the return is not a list
         Raises:
             InvalidRequestError - if no URL is supplied or if any of the requests returns 403 Access Forbidden response
@@ -419,7 +416,10 @@ class MultiRequest(object):
 
         # Break the params into batches of request_params
         request_params = self._zip_request_params(urls, query_params, data)
-        batch_of_params = [request_params[pos:pos + self._max_requests] for pos in range(0, len(request_params), self._max_requests)]
+        batch_of_params = [
+            request_params[pos:pos + self._max_requests]
+            for pos in range(0, len(request_params), self._max_requests)
+        ]
 
         # Iteratively issue each batch, applying the rate limiter if necessary
         all_responses = []
@@ -427,13 +427,13 @@ class MultiRequest(object):
             if self._rate_limiter:
                 self._rate_limiter.make_calls(num_calls=len(param_batch))
 
-            requests = []
-            for url, query_param, datum in param_batch:
-                requests.append(self._create_request(
+            prepared_requests = [
+                self._create_request(
                     verb, url, query_params=query_param, data=datum, send_as_file=send_as_file,
-                ))
+                ) for url, query_param, datum in param_batch
+            ]
 
-            responses = self._wait_for_response(requests)
+            responses = self._wait_for_response(prepared_requests)
             for response in responses:
                 if response:
                     all_responses.append(self._convert_to_json(response) if to_json else response)
@@ -448,7 +448,7 @@ class MultiRequest(object):
 
     @classmethod
     def error_handling(cls, fn):
-        """Decorator to handle errors while calling out to grequests."""
+        """Decorator to handle errors"""
         def wrapper(*args, **kwargs):
             try:
                 result = fn(*args, **kwargs)
