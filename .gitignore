@@ -56,3 +56,4 @@ target/
 .coverage
 virtualenv_run/
 .DS_Store
+.idea
