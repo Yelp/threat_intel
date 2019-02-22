@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="threat_intel",
-    version='0.1.28',
+    version='0.1.29',
     provides=['threat_intel'],
     author="Yelp Security",
     url='https://github.com/Yelp/threat_intel',
@@ -15,9 +15,9 @@ setup(
     description="Collection of the API calls for various threat intel feeds.",
     packages=find_packages(),
     install_requires=[
-        "requests-futures==0.9.9",
-        "requests[security]==2.20.0",
-        "simplejson==3.10.0",
-        "six==1.10.0",
+        "requests-futures>=0.9.9",
+        "requests[security]>=2.13.0",
+        "simplejson>=3.10.0",
+        "six>=1.10.0",
     ],
 )
