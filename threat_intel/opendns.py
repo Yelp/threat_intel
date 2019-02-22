@@ -27,7 +27,6 @@ def _cached_by_domain(api_name):
             if not self._cache:
                 return func(self, domains)
 
-            all_responses = {}
             all_responses = self._cache.bulk_lookup(api_name, domains)
             domains = list(set(domains) - set(all_responses))
 

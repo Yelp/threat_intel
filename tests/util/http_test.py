@@ -53,10 +53,11 @@ class MultiRequestTest(T.TestCase):
 
     def mock_request_futures(self, responses):
         """Mocks session.request method call returning `responses`."""
-        session_class = MagicMock(name='requests_session')
-        sessions.Session = session_class
-        session_class.request = MagicMock(side_effect=responses)
-        return session_class
+        mock_responder = MagicMock(name='requests_session')
+        mock_responder.return_value.result = MagicMock(side_effect=responses)
+        sessions.FuturesSession.get = mock_responder
+        sessions.FuturesSession.post = mock_responder
+        return mock_responder
 
     def test_multi_get_none_response(self):
         """Tests the behavior of the `multi_get()` method when one of the responses is `None`."""
@@ -69,7 +70,7 @@ class MultiRequestTest(T.TestCase):
         actual_responses = MultiRequest(max_retry=1).multi_get('example.com', query_params)
 
         T.assert_equals(10, len(actual_responses))
-        T.assert_equal(1, actual_responses.count(None))
+        T.assert_is(actual_responses[3], None)
 
     def test_multi_get_access_forbidden(self):
         """Tests the exception handling in the cases when a request returns "403 Forbidden"."""
@@ -100,12 +101,12 @@ class MultiRequestTest(T.TestCase):
         self.mock_unsuccessful_responses(responses_to_calls[1][1:3])
         # mock unsuccessful response to the third call
         self.mock_unsuccessful_response(responses_to_calls[2][1])
-        session_mock = self.mock_request_futures(chain.from_iterable(responses_to_calls))
+        get_mock = self.mock_request_futures(chain.from_iterable(responses_to_calls))
 
         actual_responses = MultiRequest(max_retry=3).multi_get('example.com', query_params)
 
-        T.assert_equal(9, session_mock.request.call_count)
-        T.assert_equal(1, actual_responses.count(None))
+        T.assert_equal(get_mock.call_count, 9)
+        T.assert_is(actual_responses[2], None)
 
     def test_multi_get_response_to_json(self):
         """Tests the exception handling in the cases when the response was supposed to return JSON but did not."""
@@ -119,7 +120,7 @@ class MultiRequestTest(T.TestCase):
         actual_responses = MultiRequest().multi_get('example.com', query_params)
 
         T.assert_equals(5, len(actual_responses))
-        T.assert_equals(1, actual_responses.count(None))
+        T.assert_is(actual_responses[3], None)
         logging.warning.called_once_with(
             'Expected response in JSON format from example.com/movie/TheRevenant'
             ' but the actual response text is: This is not JSON',
@@ -148,7 +149,7 @@ class MultiRequestTest(T.TestCase):
             responses_to_calls[1][2],
         ]
         self.mock_unsuccessful_responses(unsuccessful_responses_second_call)
-        session_mock = self.mock_request_futures(chain.from_iterable(responses_to_calls))
+        mock_get = self.mock_request_futures(chain.from_iterable(responses_to_calls))
 
         query_params = [
             {'Max Rockatansky': 'Tom Hardy'},
@@ -164,13 +165,19 @@ class MultiRequestTest(T.TestCase):
         ]
 
         MultiRequest().multi_get('example.com', query_params)
-        T.assert_equal(session_mock.request.call_count, 15)  # 10 + 3 + 2
+        T.assert_equal(mock_get.call_count, 15)  # 10 + 3 + 2
+        call_params = [kwargs['params'] for args, kwargs in mock_get.call_args_list]
+        # Assert retries
+        call_params_keys = [list(cp.keys())[0] for cp in call_params]
+        T.assert_equal(call_params_keys.count('Nux'), 3)
+        T.assert_equal(call_params_keys.count('Immortan Joe'), 2)
+        T.assert_equal(call_params_keys.count('Rictus Erectus'), 3)
 
     def test_multi_get_drop_404s(self):
         responses_to_calls = self.mock_ok_responses(3)
         self.mock_not_found_response(responses_to_calls[1])
         query_params = [{'Hugh Glass': 'Leonardo DiCaprio'}] * 3
-        session_mock = self.mock_request_futures(responses_to_calls)
+        get_mock = self.mock_request_futures(responses_to_calls)
         result = MultiRequest(drop_404s=True).multi_get('example.org', query_params)
-        T.assert_equal(session_mock.request.call_count, 3)
-        T.assert_equal(result.count(None), 1)
+        T.assert_equal(get_mock.call_count, 3)
+        T.assert_is(result[1], None)
