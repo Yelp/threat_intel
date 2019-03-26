@@ -411,7 +411,7 @@ Calls url/scan VirusTotal API endpoint.
 Submit a url or any other Python enumerable containing the URL addresses:
 
     >>> urls = ["http://www.google.com", "http://www.yelp.com"]
-    >>> vt.post_url_report(urls)
+    >>> vt.get_url_reports(urls)
 
 
 #### Hash report endpoint
