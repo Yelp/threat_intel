@@ -54,7 +54,7 @@ class InvestigateApiTest(T.TestCase):
             }
         ]
 
-        expected_url = u'https://investigate.api.opendns.com/domains/categorization/?showLabels'
+        expected_url = u'https://investigate.api.umbrella.com/domains/categorization/?showLabels'
         expected_data = ['["yellowstone.org", "zion.org", "sequoia.org", "greatsanddunes.org"]']
         expected_responses = all_responses[0]
 
