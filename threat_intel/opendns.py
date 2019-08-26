@@ -52,7 +52,7 @@ class InvestigateApi(object):
     Applies rate limits and issues parallel requests.
     """
 
-    BASE_URL = u'https://investigate.api.opendns.com/'
+    BASE_URL = u'https://investigate.api.umbrella.com/'
 
     # TODO: consider moving this to a config file
     MAX_DOMAINS_IN_POST = 1000
