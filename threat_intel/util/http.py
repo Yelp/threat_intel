@@ -385,7 +385,7 @@ class MultiRequest(object):
         name = None
         data = None
         try:
-            name = re.findall("filename=(.+)", response.headers['content-disposition'])[0]
+            name = re.findall('filename=(.+)', response.headers['content-disposition'])[0]
             data = urlsafe_b64encode(response.text.encode('utf-8')).decode('utf-8')
         except Exception:
             logging.exception('Unable to extract download data for {} '.format(response.request.url))

@@ -86,11 +86,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-file-contacted-domains'
         api_endpoint = 'files/{}/contacted_domains'
 
-        all_responses, file_hash_list = self._bulk_cache_lookup(api_name, file_hash_list)
-        response_chunks = self._request_reports(file_hash_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(file_hash_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_file_contacted_ips(self, file_hash_list):
@@ -103,11 +99,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-file-contacted-ips'
         api_endpoint = 'files/{}/contacted_ips'
 
-        all_responses, file_hash_list = self._bulk_cache_lookup(api_name, file_hash_list)
-        response_chunks = self._request_reports(file_hash_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(file_hash_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_file_contacted_urls(self, file_hash_list):
@@ -120,11 +112,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-file-contacted-urls'
         api_endpoint = 'files/{}/contacted_urls'
 
-        all_responses, file_hash_list = self._bulk_cache_lookup(api_name, file_hash_list)
-        response_chunks = self._request_reports(file_hash_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(file_hash_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_file_itw_urls(self, file_hash_list):
@@ -137,11 +125,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-file-itw-urls'
         api_endpoint = 'files/{}/itw_urls'
 
-        all_responses, file_hash_list = self._bulk_cache_lookup(api_name, file_hash_list)
-        response_chunks = self._request_reports(file_hash_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(file_hash_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_domain_communicating_files(self, domain_list):
@@ -153,11 +137,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-domain-communicating-files'
         api_endpoint = 'domains/{}/communicating_files'
 
-        all_responses, domain_list = self._bulk_cache_lookup(api_name, domain_list)
-        response_chunks = self._request_reports(domain_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(domain_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_domain_referrer_files(self, domain_list):
@@ -169,11 +149,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-domain-referrer-files'
         api_endpoint = 'domains/{}/referrer_files'
 
-        all_responses, domain_list = self._bulk_cache_lookup(api_name, domain_list)
-        response_chunks = self._request_reports(domain_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(domain_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_domain_reports(self, domain_list):
@@ -242,11 +218,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-url-reports'
         api_endpoint = 'urls/{}'
 
-        (all_responses, url_hash_list) = self._bulk_cache_lookup(api_name, url_hash_list)
-        response_chunks = self._request_reports(url_hash_list, api_endpoint)
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(url_hash_list, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_ip_reports(self, ips):
@@ -283,12 +255,9 @@ class VirusTotalApi(object):
             A dict with the VT report.
         """
         api_name = 'virustotal-file-search'
+        api_endpoint = 'intelligence/search?query={}'
 
-        (all_responses, query) = self._bulk_cache_lookup(api_name, query)
-        response_chunks = self._request_reports(query, 'intelligence/search?query={}')
-        self._extract_response_chunks(all_responses, response_chunks, api_name)
-
-        return all_responses
+        return self._extract_all_responses(query, api_endpoint, api_name)
 
     @MultiRequest.error_handling
     def get_file_clusters(self, time_frame):
@@ -300,12 +269,10 @@ class VirusTotalApi(object):
             A dict with the VT report.
         """
         api_name = 'virustotal-file-clusters'
+        api_endpoint = 'feeds/file-behaviours/{}'
 
-        all_responses = {}
-        response = self._request_reports(time_frame, 'feeds/file-behaviours/{}')
-        self._extract_response_chunks(all_responses, response, api_name)
+        return self._extract_all_responses(time_frame, api_endpoint, api_name)
 
-        return all_responses
 
     def _bulk_cache_lookup(self, api_name, keys):
         """Performes a bulk cache lookup and returns a tuple with the results
