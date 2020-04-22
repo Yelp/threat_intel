@@ -6,8 +6,10 @@
 # SSLAdapter helps force use of the highest possible version of TLS.
 #
 import logging
+import re
 import ssl
 import time
+from base64 import urlsafe_b64encode
 from collections import namedtuple
 from collections import OrderedDict
 from functools import partial
@@ -379,6 +381,16 @@ class MultiRequest(object):
 
         return list(responses_for_requests.values())
 
+    def _handle_file_download(self, response):
+        name = None
+        data = None
+        try:
+            name = re.findall("filename=(.+)", response.headers['content-disposition'])[0]
+            data = urlsafe_b64encode(response.text.encode('utf-8')).decode('utf-8')
+        except Exception:
+            logging.exception('Unable to extract download data for {} '.format(response.request.url))
+        return {'data': {'id': name, 'text': data}}
+
     def _convert_to_json(self, response):
         """Converts response to JSON.
         If the response cannot be converted to JSON then `None` is returned.
@@ -388,6 +400,8 @@ class MultiRequest(object):
         Returns:
             Response in JSON format if the response can be converted to JSON. `None` otherwise.
         """
+        if 'content-disposition' in response.headers:
+            return self._handle_file_download(response)
         try:
             return response.json()
         except ValueError:
