@@ -73,7 +73,7 @@ class VirusTotalApi(object):
         """
         api_name = 'virustotal-file-download'
         api_endpoint = 'files/{}/download'
-        return self._extract_all_responses(file_hash_list, api_endpoint, api_name)
+        return self._extract_all_responses(file_hash_list, api_endpoint, api_name, file_download=True)
 
     @MultiRequest.error_handling
     def get_file_contacted_domains(self, file_hash_list):
@@ -293,17 +293,18 @@ class VirusTotalApi(object):
 
         return ({}, keys)
 
-    def _request_reports(self, ids, endpoint_name):
+    def _request_reports(self, ids, endpoint_name, file_download=False):
         """Sends multiples requests for the resources to a particular endpoint.
 
         Args:
             ids: list of the hash identifying the file.
             endpoint_name: VirusTotal endpoint URL suffix.
+            file_download: boolean, whether a file download is expected
         Returns:
             A list of the responses.
         """
         urls = ['{}{}'.format(self.BASE_DOMAIN, endpoint_name.format(id)) for id in ids]
-        return self._requests.multi_get(urls) if urls else []
+        return self._requests.multi_get(urls, file_download=file_download) if urls else []
 
 
     def _extract_cache_id(self, response):
@@ -328,7 +329,7 @@ class VirusTotalApi(object):
             cache_id = cache_id.split('_')[0]
         return cache_id
 
-    def _extract_all_responses(self, resources, api_endpoint, api_name):
+    def _extract_all_responses(self, resources, api_endpoint, api_name, file_download=False):
         """ Aux function to extract all the API endpoint responses.
 
         Args:
@@ -339,7 +340,7 @@ class VirusTotalApi(object):
             A dict with the hash as key and the VT report as value.
         """
         all_responses, resources = self._bulk_cache_lookup(api_name, resources)
-        response_chunks = self._request_reports(resources, api_endpoint)
+        response_chunks = self._request_reports(resources, api_endpoint, file_download)
         self._extract_response_chunks(all_responses, response_chunks, api_name)
 
         return all_responses

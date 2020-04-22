@@ -2,6 +2,7 @@
 #
 import testify as T
 from mock import patch
+from mock import ANY
 
 from threat_intel.virustotal import VirusTotalApi
 
@@ -30,7 +31,7 @@ class VirusTotalApiTest(T.TestCase):
             request_mock.multi_get.return_value = api_response
             result = call(request)
             param_list = [self.vt.BASE_DOMAIN + endpoint.format(param) for param in expected_query_params]
-            request_mock.multi_get.assert_called_with(param_list)
+            request_mock.multi_get.assert_called_with(param_list, file_download=ANY)
             T.assert_equal(result, expected_result)
 
     def test_get_file_reports(self):

@@ -202,13 +202,15 @@ class MultiRequest(object):
             ),
         )
 
-    def multi_get(self, urls, query_params=None, to_json=True):
+    def multi_get(self, urls, query_params=None, to_json=True, file_download=False):
         """Issue multiple GET requests.
 
         Args:
             urls - A string URL or list of string URLs
             query_params - None, a dict, or a list of dicts representing the query params
             to_json - A boolean, should the responses be returned as JSON blobs
+            file_download - A boolean, whether a file download is expected
+
         Returns:
             a list of dicts if to_json is set of requests.response otherwise.
         Raises:
@@ -216,7 +218,7 @@ class MultiRequest(object):
         """
         return self._multi_request(
             MultiRequest._VERB_GET, urls, query_params,
-            data=None, to_json=to_json,
+            data=None, to_json=to_json, file_download=file_download,
         )
 
     def multi_post(self, urls, query_params=None, data=None, to_json=True, send_as_file=False):
@@ -410,7 +412,7 @@ class MultiRequest(object):
             ))
         return None
 
-    def _multi_request(self, verb, urls, query_params, data, to_json=True, send_as_file=False):
+    def _multi_request(self, verb, urls, query_params, data, to_json=True, send_as_file=False, file_download=False):
         """Issues multiple batches of simultaneous HTTP requests and waits for responses.
 
         Args:
@@ -449,8 +451,10 @@ class MultiRequest(object):
 
             responses = self._wait_for_response(prepared_requests)
             for response in responses:
-                if response:
+                if response and not file_download:
                     all_responses.append(self._convert_to_json(response) if to_json else response)
+                elif file_download:
+                    all_responses.append(self._handle_file_download(response))
                 else:
                     all_responses.append(None)
 
