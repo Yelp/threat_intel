@@ -184,7 +184,7 @@ class VirusTotalApi(object):
         api_name = 'virustotal-url-distribution'
         all_responses = {}
 
-        response = self._request_reports(time_frame, 'feeds/urls/{}')
+        response = self._request_reports(time_frame, 'feeds/urls/{}', file_download=True)
         self._extract_response_chunks(all_responses, response, api_name)
 
         return all_responses

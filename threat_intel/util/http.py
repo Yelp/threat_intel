@@ -402,8 +402,6 @@ class MultiRequest(object):
         Returns:
             Response in JSON format if the response can be converted to JSON. `None` otherwise.
         """
-        if 'content-disposition' in response.headers:
-            return self._handle_file_download(response)
         try:
             return response.json()
         except ValueError:
