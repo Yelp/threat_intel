@@ -171,7 +171,7 @@ class MultiRequest(object):
 
     def __init__(
         self, default_headers=None, max_requests=10, rate_limit=0,
-        req_timeout=None, max_retry=10, total_retry=100, drop_404s=False,
+        req_timeout=None, max_retry=10, total_retry=100, drop_404s=True,
     ):
         """Create the MultiRequest.
 
