@@ -22,7 +22,7 @@ class VirusTotalApi(object):
             req_timeout: Maximum number of seconds to wait without reading a response byte before deciding an error has occurred.
                          Default is None.
         """
-        self._requests = MultiRequest(req_timeout=req_timeout, default_headers={'x-apikey': api_key})
+        self._requests = MultiRequest(req_timeout=req_timeout, default_headers={'x-apikey': api_key}, drop_404s=True)
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
