@@ -16,18 +16,18 @@ class VirusTotalApiTest(T.TestCase):
     def setup_vt(self):
         self.vt = VirusTotalApi('test_key')
 
-    def test_gti_assessment_sets_x_tool_header(self):
-        """When gti_assessment is provided, x-tool header should be included in requests."""
+    def test_x_tool_sets_x_tool_header(self):
+        """When x_tool is provided, x-tool header should be included in requests."""
         with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
-            VirusTotalApi('test_key', gti_assessment='my-tool')
+            VirusTotalApi('test_key', x_tool='my-tool')
             mock_init.assert_called_once_with(
                 req_timeout=None,
                 default_headers={'x-apikey': 'test_key', 'x-tool': 'my-tool'},
                 drop_404s=True,
             )
 
-    def test_no_gti_assessment_omits_x_tool_header(self):
-        """When gti_assessment is not provided, x-tool header should not be present."""
+    def test_no_x_tool_omits_x_tool_header(self):
+        """When x_tool is not provided, x-tool header should not be present."""
         with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
             VirusTotalApi('test_key')
             mock_init.assert_called_once_with(
@@ -36,10 +36,10 @@ class VirusTotalApiTest(T.TestCase):
                 drop_404s=True,
             )
 
-    def test_empty_gti_assessment_omits_x_tool_header(self):
-        """When gti_assessment is an empty string, x-tool header should not be set."""
+    def test_empty_x_tool_omits_x_tool_header(self):
+        """When x_tool is an empty string, x-tool header should not be set."""
         with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
-            VirusTotalApi('test_key', gti_assessment='')
+            VirusTotalApi('test_key', x_tool='')
             mock_init.assert_called_once_with(
                 req_timeout=None,
                 default_headers={'x-apikey': 'test_key'},
