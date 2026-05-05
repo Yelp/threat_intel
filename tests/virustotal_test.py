@@ -5,6 +5,7 @@ from mock import patch
 from mock import ANY
 
 from threat_intel.virustotal import VirusTotalApi
+from threat_intel.util.http import MultiRequest
 
 
 class VirusTotalApiTest(T.TestCase):
@@ -14,6 +15,36 @@ class VirusTotalApiTest(T.TestCase):
     @T.setup
     def setup_vt(self):
         self.vt = VirusTotalApi('test_key')
+
+    def test_gti_assessment_sets_x_tool_header(self):
+        """When gti_assessment is provided, x-tool header should be included in requests."""
+        with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
+            VirusTotalApi('test_key', gti_assessment='my-tool')
+            mock_init.assert_called_once_with(
+                req_timeout=None,
+                default_headers={'x-apikey': 'test_key', 'x-tool': 'my-tool'},
+                drop_404s=True,
+            )
+
+    def test_no_gti_assessment_omits_x_tool_header(self):
+        """When gti_assessment is not provided, x-tool header should not be present."""
+        with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
+            VirusTotalApi('test_key')
+            mock_init.assert_called_once_with(
+                req_timeout=None,
+                default_headers={'x-apikey': 'test_key'},
+                drop_404s=True,
+            )
+
+    def test_empty_gti_assessment_omits_x_tool_header(self):
+        """When gti_assessment is an empty string, x-tool header should not be set."""
+        with patch.object(MultiRequest, '__init__', return_value=None) as mock_init:
+            VirusTotalApi('test_key', gti_assessment='')
+            mock_init.assert_called_once_with(
+                req_timeout=None,
+                default_headers={'x-apikey': 'test_key'},
+                drop_404s=True,
+            )
 
     def _test_api_call(self, call, endpoint, request, expected_query_params, api_response, expected_result):
         """
