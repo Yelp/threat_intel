@@ -11,7 +11,7 @@ from threat_intel.util.http import MultiRequest
 class VirusTotalApi(object):
     BASE_DOMAIN = u'https://www.virustotal.com/api/v3/'
 
-    def __init__(self, api_key, cache_file_name=None, update_cache=True, req_timeout=None):
+    def __init__(self, api_key, cache_file_name=None, update_cache=True, req_timeout=None, x_tool=None):
         """Establishes basic HTTP params and loads a cache.
 
         Args:
@@ -21,8 +21,13 @@ class VirusTotalApi(object):
                           Default is `True`.
             req_timeout: Maximum number of seconds to wait without reading a response byte before deciding an error has occurred.
                          Default is None.
+            x_tool: Optional string value for the x-tool header. When provided, Google Threat Intelligence
+                    verdict will be included in API responses. Default is None.
         """
-        self._requests = MultiRequest(req_timeout=req_timeout, default_headers={'x-apikey': api_key}, drop_404s=True)
+        default_headers = {'x-apikey': api_key}
+        if x_tool:
+            default_headers['x-tool'] = x_tool
+        self._requests = MultiRequest(req_timeout=req_timeout, default_headers=default_headers, drop_404s=True)
 
         # Create an ApiCache if instructed to
         self._cache = ApiCache(cache_file_name, update_cache) if cache_file_name else None
