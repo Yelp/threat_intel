@@ -9,6 +9,7 @@ The package contains API wrappers for:
 * Umbrella Investigate API
 * VirusTotal API v2.0
 * ShadowServer API
+* NetAPI domain rank (NetAPI Top 1M)
 
 ----
 
@@ -725,6 +726,58 @@ ss.get_bin_test(file_hashes)
 ```
 
 ---
+
+### NetAPI domain rank
+
+[NetAPI](https://netapi.com/) publishes a free Top 1M list of the most popular websites and a JSON method that returns the position of
+a domain in it, as a replacement for the retired Alexa ranking. The method needs no API key (30 requests a minute and 1,000 a day per
+IP); the token of a free NetAPI account raises that to 60 a minute and 5,000 a day.
+
+To use the NetAPI wrapper import NetApiRankingApi class from threat_intel.netapi module:
+
+    >>> from threat_intel import NetApiRankingApi
+
+    >>> na = NetApiRankingApi()
+
+or with an API token and a cache file:
+
+    >>> na = NetApiRankingApi(api_token="<NETAPI-API-TOKEN-HERE>", cache_file_name="/tmp/cache.netapi.json")
+
+#### Domain rank
+
+Calls the `domain-rank` method of the JSON API (`https://netapi.com/api-json/?method=domain-rank&domain=...`), one request per domain.
+Pass a list or any other Python enumerable containing the domains:
+
+    >>> domains = ["yelp.com", "bibikun.ru"]
+    >>> na.get_domain_rankings(domains)
+
+will result in:
+
+```
+{
+  "yelp.com": {
+    "domain": "yelp.com",
+    "in_top_1m": true,
+    "rank": 1015,
+    "rank_in_tld": 503,
+    "tld": "com",
+    "tld_sites_in_top_1m": 428050,
+    "snapshot_date": "2026-10-24"
+  },
+  "bibikun.ru": {
+    "domain": "bibikun.ru",
+    "in_top_1m": false,
+    "rank": null,
+    "rank_in_tld": null,
+    "tld": "ru",
+    "tld_sites_in_top_1m": 20906,
+    "snapshot_date": "2026-10-24"
+  }
+}
+```
+
+`rank` 1 is the most popular website; the list is rebuilt daily, so a cache file keeps the ranks of the day it was written.
+Documentation: https://netapi.com/help/api/#json-api
 
 ## Installation
 

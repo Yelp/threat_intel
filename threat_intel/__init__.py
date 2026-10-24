@@ -8,6 +8,7 @@ The package contains API wrappers for:
 * OpenDNS Investigate API
 * VirusTotal API v2.0
 * ShadowServer API
+* NetAPI domain rank (NetAPI Top 1M)
 
 
 OpenDNS Investigate API
@@ -525,12 +526,38 @@ want to test:
 
     >>> ss.get_bin_test(file_hashes)
 
+
+NetAPI domain rank
+------------------
+NetAPI publishes a free Top 1M list of the most popular websites and a JSON method that returns the position of a domain in it.
+
+To use the NetAPI wrapper import NetApiRankingApi class from threat_intel.netapi module:
+
+    >>> from threat_intel import NetApiRankingApi
+
+    >>> na = NetApiRankingApi()
+
+The domain-rank method is free and needs no token; the token of a NetAPI account raises the request limits:
+
+    >>> na = NetApiRankingApi(api_token="<NETAPI-API-TOKEN-HERE>", cache_file_name="/tmp/cache.netapi.json")
+
+    >>> domains = ["yelp.com", "bibikun.ru"]
+    >>> na.get_domain_rankings(domains)
+
+will result in:
+
+    {
+        "yelp.com": {"domain": "yelp.com", "in_top_1m": true, "rank": 1015, "rank_in_tld": 503, "tld": "com", ..},
+        "bibikun.ru": {"domain": "bibikun.ru", "in_top_1m": false, "rank": null, ..}
+    }
+
 """
 from __future__ import absolute_import
 from .exceptions import InvalidRequestError
 
+from .netapi import NetApiRankingApi
 from .opendns import InvestigateApi
 from .shadowserver import ShadowServerApi
 from .virustotal import VirusTotalApi
 
-__all__ = ['InvalidRequestError', 'InvestigateApi', 'ShadowServerApi', 'VirusTotalApi']
+__all__ = ['InvalidRequestError', 'InvestigateApi', 'NetApiRankingApi', 'ShadowServerApi', 'VirusTotalApi']
